@@ -340,15 +340,71 @@
 
 
 
+// import AboutClient from "./AboutClient";
+
+// /* ✅ SERVER FETCH */
+// async function getAboutData() {
+//   try {
+//     const res = await fetch("http://127.0.0.1:8000/api/about/", {
+//       cache: "no-store",
+//     });
+
+//     if (!res.ok) return null;
+
+//     return res.json();
+//   } catch {
+//     return null;
+//   }
+// }
+
+// /* ✅ SEO (VISIBLE IN VIEW SOURCE) */
+// export async function generateMetadata() {
+//   const data = await getAboutData();
+//   const meta = data?.meta;
+
+//   return {
+//     title: meta?.meta_title || "About",
+//     description: meta?.meta_description || "",
+//     keywords: meta?.meta_keywords
+//       ? meta.meta_keywords.split(",").map((k: string) => k.trim())
+//       : undefined,
+
+//     alternates: {
+//       canonical: "https://yourdomain.com/about",
+//     },
+
+//     openGraph: {
+//       title: meta?.meta_title,
+//       description: meta?.meta_description,
+//     },
+
+//     twitter: {
+//       card: "summary_large_image",
+//       title: meta?.meta_title,
+//       description: meta?.meta_description,
+//     },
+//   };
+// }
+
+// /* ✅ SSR PAGE */
+// export default async function Page() {
+//   const data = await getAboutData();
+
+//   return <AboutClient initialData={data} />;
+// }
+
+
+
 import AboutClient from "./AboutClient";
+import { apiUrl } from "../lib/api";
 
 /* ✅ SERVER FETCH */
 async function getAboutData() {
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/about/", {
+    const res = await fetch(apiUrl("/api/about/"), {
       cache: "no-store",
     });
-
+    console.log(res);
     if (!res.ok) return null;
 
     return res.json();
@@ -370,7 +426,7 @@ export async function generateMetadata() {
       : undefined,
 
     alternates: {
-      canonical: "https://yourdomain.com/about",
+      canonical: "https://skillvedika.com/about",
     },
 
     openGraph: {
@@ -389,13 +445,10 @@ export async function generateMetadata() {
 /* ✅ SSR PAGE */
 export default async function Page() {
   const data = await getAboutData();
+  console.log(data)
 
   return <AboutClient initialData={data} />;
 }
-
-
-
-
 
 
 
