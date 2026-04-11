@@ -311,10 +311,11 @@
 
 import type { Metadata } from "next";
 import CorporateTrainingClient from "./CorporateTrainingClient";
+import { apiUrl } from "../lib/api";
 
 export const generateMetadata = async (): Promise<Metadata> => {
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/corporate-training/", {
+    const res = await fetch(apiUrl("/api/corporate-training/"), {
       cache: "no-store",
     });
     const data = await res.json();
@@ -351,7 +352,7 @@ export const generateMetadata = async (): Promise<Metadata> => {
 };
 
 export default async function Page() {
-  const res = await fetch("http://127.0.0.1:8000/api/corporate-training/", {
+  const res = await fetch(apiUrl("/api/corporate-training/"), {
     cache: "no-store",
   });
   const data = await res.json();
