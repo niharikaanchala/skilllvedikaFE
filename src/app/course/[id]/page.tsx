@@ -1,3 +1,5 @@
+
+
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -27,6 +29,7 @@ import {
 import { buildCourseDetailSchema } from "@/app/components/schemas/course-schema";
 import { buildBreadcrumbSchema } from "@/app/components/schemas/breadcrumb-schema";
 import { Home } from "lucide-react";
+import SidebarForm from "./_components/SidebarForm";  
 
 /** Reference palette: deep navy, sky cyan, gold accents */
 const navy = {
@@ -234,6 +237,10 @@ export default async function CourseDetailPage({ params }: PageProps) {
     { name: course.title, url: `/course/${course.slug}` },
   ]);
 
+const handleSubmit=async()=>{
+
+}
+
   // console.log("Curriculum Data:", curriculum);
 
   return (
@@ -361,7 +368,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="bg-white text-slate-900 rounded-2xl p-6 md:p-8 shadow-2xl shadow-black/25 ring-1 ring-sky-100">
+          {/* <div className="bg-white text-slate-900 rounded-2xl p-6 md:p-8 shadow-2xl shadow-black/25 ring-1 ring-sky-100">
             <h3 className="text-lg font-bold text-[#0a2540]">
               Get Course Details
             </h3>
@@ -396,7 +403,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
               />
 
               <button
-                type="submit"
+              
                 className="w-full py-3.5 rounded-xl font-bold text-white shadow-md transition hover:brightness-105"
                 style={{
                   background: `linear-gradient(90deg, ${cyan} 0%, #0090c9 100%)`,
@@ -409,7 +416,8 @@ export default async function CourseDetailPage({ params }: PageProps) {
             <p className="text-xs text-slate-500 mt-4 text-center leading-relaxed">
               No spam. We respect your privacy.
             </p>
-          </div>
+          </div> */}
+          <SidebarForm course={course} />
         </div>
       </section>
 

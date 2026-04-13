@@ -68,9 +68,10 @@ type SectionTitles = {
 
 type Props = {
   initialData: any;
+  courses: any[];
 };
 
-export default function CorporateTrainingClient({ initialData }: Props) {
+export default function CorporateTrainingClient({ initialData, courses }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [hero, setHero] = useState<Hero | null>(null);
   const [empower, setEmpower] = useState<Empower | null>(null);
@@ -368,7 +369,27 @@ export default function CorporateTrainingClient({ initialData }: Props) {
 
             <input className="w-full border p-3 mb-4" placeholder="Full Name" />
             <input className="w-full border p-3 mb-4" placeholder="Email" />
+           <div className="flex items-stretch mb-4">
+  <span className="px-3 bg-gray-100 border border-r-0 flex items-center rounded-l-md">
+    🇮🇳 +91
+  </span>
 
+  <input
+    type="tel"
+    placeholder="Phone Number"
+    className="w-full border border-l-0 px-4 rounded-r-md focus:outline-none"
+  />
+</div>
+            <select className="w-full border p-3 mb-4">
+              <option value="">Select Course</option>
+              {courses.map((course: any) => (
+                <option key={course.id} value={course.id}>{course.title}</option>
+              ))}
+            </select>
+            <label className="flex items-start gap-2 text-sm">
+              <input type="checkbox" name="agreed_to_terms" />
+              I agree to the <a href="/terms" className="text-[#0066FF] underline">Terms & Conditions</a> and <a href="/privacy" className="text-[#0066FF] underline">Privacy Policy</a> *
+            </label>
             <button className="w-full rounded-lg bg-[#2f5fa8] py-3 text-white">
               {demo.button_text}
             </button>

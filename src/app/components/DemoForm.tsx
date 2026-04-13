@@ -1,29 +1,70 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function DemoForm({ demo, courses }: any) {
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
-    course: ""
+    agreed_to_terms: false,
+    years_of_experience: "",
+    skills: "",
+    message: "",
   });
+  const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
+  useEffect(() => {
+    if (courses.length > 0) {
+      setSelectedCourse(courses[0].id);
+    }
+  }, [courses]);
+
+  const selectedCourseObj = courses.find(
+    (c: any) => c.id === selectedCourse
+  );
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    console.log("form : ",JSON.stringify({
+      first_name: form.name.trim().split(/\s+/).slice(0, 1).join(""),
+      last_name: form.name.trim().split(/\s+/).slice(1).join(" "),
+      full_name: form.name.trim(),
+      years_of_experience: "",
+      skills: "",
+      agreed_to_terms: form.agreed_to_terms,
+      message: selectedCourseObj?.title.trim()
+        ? `Interested course: ${selectedCourseObj?.title.trim()}`
+        : "",
+      email: form.email,
+      phone: form.phone,
+      course: selectedCourseObj?.id ?? null,
+    }));
+    
 
-    const res = await fetch("http://localhost:8000/api/on-job-support/demo-request/", {
+const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/on-job-support/demo-request/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(form)
+      body: JSON.stringify({
+        first_name: form.name.trim().split(/\s+/).slice(0, 1).join(""),
+        last_name: form.name.trim().split(/\s+/).slice(1).join(" "),
+        full_name: form.name.trim(),
+        years_of_experience: "",
+        skills: "",
+        agreed_to_terms: form.agreed_to_terms,
+        message: selectedCourseObj?.title.trim()
+          ? `Interested course: ${selectedCourseObj?.title.trim()}`
+          : "",
+        email: form.email,
+        phone: form.phone,
+        course: selectedCourseObj?.id ?? null,
+      })
     });
 
     if (res.ok) {
       alert("✅ Submitted successfully!");
-      setForm({ name: "", email: "", phone: "", course: "" });
+      setForm({ name: "", email: "", phone: "", agreed_to_terms: false, years_of_experience: "", skills: "", message: "" });
     } else {
       alert("❌ Submission failed");
     }
@@ -76,18 +117,37 @@ export default function DemoForm({ demo, courses }: any) {
       </div>
 
       <select
-        value={form.course}
-        onChange={(e) => setForm({ ...form, course: e.target.value })}
-        className="w-full border px-4 py-2 rounded-md"
-        required
-      >
-        <option value="">Choose course</option>
-        {courses.map((course: any) => (
-          <option key={course.id} value={course.name || course.title}>
-            {course.name || course.title}
-          </option>
-        ))}
-      </select>
+  value={selectedCourse ?? ""}
+  onChange={(e) => setSelectedCourse(Number(e.target.value))}
+  className="w-full border px-4 py-2 rounded-md"
+  required
+>
+  <option value="">Choose course</option>
+  {courses.map((course: any) => (
+    <option key={course.id} value={course.id}>
+      {course.title}
+    </option>
+  ))}
+</select>
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          name="agreed_to_terms"
+          checked={form.agreed_to_terms}
+          onChange={(e) => setForm({ ...form, agreed_to_terms: e.target.checked })}
+        />
+         <span>
+                  I agree to the{" "}
+                  <a href="/terms" className="text-[#0066FF] underline">
+                    Terms & Conditions
+                  </a>{" "}
+                  and{" "}
+                  <a href="/privacy" className="text-[#0066FF] underline">
+                    Privacy Policy
+                  </a>
+                  *
+                </span>
+      </label>
 
       <button className="w-full py-3 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-md">
         Submit Your Details

@@ -2,12 +2,17 @@
 
 import { Home } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState ,useEffect} from "react";
 import { useRouter } from "next/navigation";
 
 /* SAME TYPES (unchanged) */
 
-export default function AboutPage({ initialData }: any) {
+type Course = {
+  id: number;
+  title: string;
+};
+
+export default function AboutPage({ initialData, courses }: { initialData: any, courses: Course[] }) {
   /* ✅ USE SERVER DATA INSTEAD OF FETCH */
   const data = initialData;
 
@@ -32,9 +37,19 @@ export default function AboutPage({ initialData }: any) {
     full_name: "",
     email: "",
     phone: "",
-    course: "",
     agree: false,
   });
+
+  const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
+  useEffect(() => {
+    if (courses.length > 0) {
+      setSelectedCourse(courses[0].id);
+    }
+  }, [courses]);
+
+  const selectedCourseObj = courses.find(
+    (c: any) => c.id === selectedCourse
+  );
 
   return (
     <main className="bg-[#F4F5FC] pt-16">
@@ -223,21 +238,19 @@ export default function AboutPage({ initialData }: any) {
                     * Select Courses
                 </label>
                 <select
-                  value={formData.course}
+                  value={selectedCourse ?? ""}
                   onChange={(e) =>
-                    setFormData({ ...formData, course: e.target.value })
+                    setSelectedCourse(Number(e.target.value))
                   }
                   className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2C6ED5]"
                 >
                   <option value="">Select a course</option>
 
-                  {(Array.isArray(demo?.courses) ? demo.courses : []).map(
-                    (course: string, i: number) => (
-                      <option key={i} value={course}>
-                        {course}
-                      </option>
-                    )
-                  )}
+                  {courses.map((course: any) => (
+                    <option key={course.id} value={course.id}>
+                      {course.title}
+                    </option>
+                  ))}
                 </select>
                 </div>
 
@@ -255,12 +268,23 @@ export default function AboutPage({ initialData }: any) {
                     console.log("Form submitted:", formData);
 
                     // API CALL HERE
-                    fetch("http://127.0.0.1:8000/api/demo-submit/", {
+                    fetch("http://127.0.0.1:8000/api/courses/counselling/submit/", {
                       method: "POST",
                       headers: {
                         "Content-Type": "application/json",
                       },
-                      body: JSON.stringify(formData),
+                      body: JSON.stringify({
+                        first_name: formData.full_name.trim().split(/\s+/).slice(0, 1).join(""),
+                        last_name: formData.full_name.trim().split(/\s+/).slice(1).join(" "),
+                        full_name: formData.full_name.trim(),
+                        agreed_to_terms: formData.agree,
+                        message: selectedCourseObj?.title.trim()
+                          ? `Interested course: ${selectedCourseObj?.title.trim()}`
+                          : "",
+                        email: formData.email,
+                        phone: formData.phone,
+                        course: selectedCourseObj?.id ?? null,
+                      }),
                     })
                       .then((res) => res.json())
                       .then((data) => {

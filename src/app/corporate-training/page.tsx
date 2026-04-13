@@ -352,10 +352,17 @@ export const generateMetadata = async (): Promise<Metadata> => {
 };
 
 export default async function Page() {
-  const res = await fetch(apiUrl("/api/corporate-training/"), {
-    cache: "no-store",
-  });
+
+  const [coursesRes, res] = await Promise.all([
+    fetch(apiUrl("/api/courses/"), {
+      cache: "no-store",
+    }),
+    fetch(apiUrl("/api/corporate-training/"), {
+      cache: "no-store",
+    }),
+  ]);
+  const coursesData = await coursesRes.json();
   const data = await res.json();
 
-  return <CorporateTrainingClient initialData={data} />;
+  return <CorporateTrainingClient initialData={data} courses={coursesData} />;
 }

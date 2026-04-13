@@ -413,6 +413,16 @@ async function getAboutData() {
   }
 }
 
+async function getCourses() {
+  try {
+    const res = await fetch(apiUrl("/api/courses/"), {
+      cache: "no-store",
+    });
+    return res.json();
+  } catch {
+    return null;
+  }
+}
 /* ✅ SEO (VISIBLE IN VIEW SOURCE) */
 export async function generateMetadata() {
   const data = await getAboutData();
@@ -444,10 +454,11 @@ export async function generateMetadata() {
 
 /* ✅ SSR PAGE */
 export default async function Page() {
-  const data = await getAboutData();
+ const [data, coursesData] = await Promise.all([getAboutData(), getCourses()]);
+
   console.log(data)
 
-  return <AboutClient initialData={data} />;
+  return <AboutClient initialData={data} courses={coursesData} />;
 }
 
 
