@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import CounsellingModal from "./CounsellingModal";
+import CounsellingModal from "@/app/course/[id]/CounsellingModal";
 import {
   fetchCourses,
   fetchCourseById,
@@ -194,7 +194,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
     .filter((post) => normalizeCategoryKey(post.category ?? "") === categoryKey)
     .slice(0, 6);
 
-  const courseHref = (c: CourseApi) => `/course/${c.slug}`;
+  const courseHref = (c: CourseApi) => `/courses/${categorySlug}/${c.slug}`;
 
   const cardBase =
     "bg-white rounded-2xl border border-sky-100/80 shadow-lg shadow-[#0a2540]/[0.06]";
@@ -234,7 +234,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
     ...(categoryLabel
       ? [{ name: categoryLabel, url: categoryHref || undefined }]
       : []),
-    { name: course.title, url: `/course/${course.slug}` },
+    { name: course.title, url: `/courses/${categorySlug}/${course.slug}` },
   ]);
 
 const handleSubmit=async()=>{

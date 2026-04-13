@@ -15,7 +15,10 @@ import { buildCategoryListSchema } from "../components/schemas/category-schema";
 import { buildBreadcrumbSchema } from "../components/schemas/breadcrumb-schema";
 import { Home } from "lucide-react";
 import { Metadata } from "next";
-
+import CategoriesCarousel from "../components/CategoriesCarousel";
+import CoursesCarousel from "../components/CoursesCarousel";
+import CourseCard from "../components/CourseCard";
+import BlogsCarousel from "../components/BlogsCarousel";
 function clampText(text: string, maxLen: number) {
   if (!text) return "";
   return text.length <= maxLen ? text : text.slice(0, maxLen - 1) + "…";
@@ -232,55 +235,18 @@ export default async function CoursesPage({
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
-
-            {categories?.length ? (
-              categories.map((cat: CategoryApi) => (
-                <Link key={cat.id} href={`/courses/${cat.slug}`}>
-                  <div className="group relative overflow-hidden rounded-2xl border border-white/40 bg-white/70 backdrop-blur-xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(47,95,168,0.25)] hover:border-[#2f5fa8]/30">
-
-                    {/* soft gradient glow */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-[#2f5fa8]/10 via-transparent to-[#8ab4ff]/10" />
-
-                    <div className="relative flex items-start gap-4">
-
-                      {/* Icon */}
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#2f5fa8] to-[#4f7fd6] text-white text-lg font-bold shadow-md group-hover:scale-105 transition">
-                        {cat.name?.charAt(0)?.toUpperCase()}
-                      </div>
-
-                      {/* Content */}
-                      <div className="min-w-0">
-                        <h3 className="text-base font-bold text-[#0f1f3a] group-hover:text-[#2f5fa8] transition">
-                          {cat.name}
-                        </h3>
-
-                        <p className="mt-2 text-sm text-slate-600 line-clamp-3 leading-relaxed">
-                          {cat.description}
-                        </p>
-
-                        {/* CTA */}
-                        <div className="mt-5 inline-flex items-center text-sm font-semibold text-[#2f5fa8] opacity-0 group-hover:opacity-100 transition">
-                          Explore courses →
-                          <span className="ml-1 transition group-hover:translate-x-1">→</span>
-                        </div>
-                      </div>
-
-                    </div>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <div className="col-span-full text-center p-14 rounded-2xl border border-dashed border-[#cfe0ff] bg-white">
-                <p className="text-lg font-semibold text-[#0f1f3a]">
-                  No categories available
-                </p>
-                <p className="text-sm text-slate-500 mt-2">
-                  Categories will appear here once added.
-                </p>
-              </div>
-            )}
-          </div>
+          {categories?.length ? (
+            <CategoriesCarousel categories={categories} />
+          ) : (
+            <div className="col-span-full text-center p-14 rounded-2xl border border-dashed border-[#cfe0ff] bg-white">
+              <p className="text-lg font-semibold text-[#0f1f3a]">
+                No categories available
+              </p>
+              <p className="text-sm text-slate-500 mt-2">
+                Categories will appear here once added.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -293,13 +259,8 @@ export default async function CoursesPage({
             </h2>
             <div className="h-1 flex-1 rounded-full bg-gradient-to-r from-[#2f5fa8] via-[#4a79bd] to-[#cbdcf1]" />
           </div>
-
           {sortedCourses?.length ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sortedCourses.map((course: CourseApi) => (
-                <CourseCard key={course.id} course={course} />
-              ))}
-            </div>
+            <CoursesCarousel courses={sortedCourses} />
           ) : (
             <div className="text-center p-12 rounded-2xl border border-dashed border-sky-200 bg-sky-50/50">
               <p className="font-semibold text-[#1a2d49]">No courses found</p>
@@ -308,6 +269,8 @@ export default async function CoursesPage({
               </p>
             </div>
           )}
+
+
         </div>
       </section>
 
@@ -344,41 +307,8 @@ export default async function CoursesPage({
           <h2 className="mb-10 text-xl font-bold text-[#1a2d49]">
             Recommended Articles
           </h2>
-
           {blogs?.length ? (
-            <div className="grid md:grid-cols-2 gap-8">
-              {blogs.map((blog: BlogPostApi) => (
-                <div
-                  key={blog.id}
-                  className="flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-md shadow-slate-200/30 transition hover:border-[#2f5fa8]/20 hover:shadow-lg"
-                >
-                  {blog.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={blog.image_url}
-                      alt={blog.title}
-                      className="h-36 w-full object-cover border-b border-slate-100"
-                    />
-                  ) : (
-                    <div className="h-28 bg-gradient-to-br from-slate-100 to-sky-50 border-b border-slate-100" />
-                  )}
-
-                  <div className="p-6 flex-1 flex flex-col">
-                    <span className="w-fit text-xs font-bold text-[#2f5fa8]">
-                      {blog.category}
-                    </span>
-
-                    <h3 className="mt-3 text-base font-bold text-[#1a2d49]">
-                      {blog.title}
-                    </h3>
-
-                    <p className="text-sm text-slate-600 mt-2 leading-relaxed flex-1">
-                      {clampText(blog.excerpt, 120)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <BlogsCarousel blogs={blogs} />
           ) : (
             <p className="text-sm text-slate-500 text-center py-8">
               No articles available
@@ -447,46 +377,46 @@ export default async function CoursesPage({
   );
 }
 
-function CourseCard({ course }: { course: CourseApi }) {
-  const categoryLabel =
-    typeof course.category === "object" && course.category
-      ? course.category.name
-      : course.category_name || "Course";
+// function CourseCard({ course }: { course: CourseApi }) {
+//   const categoryLabel =
+//     typeof course.category === "object" && course.category
+//       ? course.category.name
+//       : course.category_name || "Course";
 
-  return (
-    <Link
-      href={`/course/${course.slug}`}
-      className="group block overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:border-[#2f5fa8]/25 hover:shadow-md"
-    >
-      <div className="h-1 bg-gradient-to-r from-[#2f5fa8] to-[#79a2d9]" />
+//   return (
+//     <Link
+//       href={`/course/${course.slug}`}
+//       className="group block overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:border-[#2f5fa8]/25 hover:shadow-md"
+//     >
+//       <div className="h-1 bg-gradient-to-r from-[#2f5fa8] to-[#79a2d9]" />
 
-      <div className="p-4">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-[#2f5fa8]">
-          {categoryLabel}
-        </p>
+//       <div className="p-4">
+//         <p className="text-[11px] font-semibold uppercase tracking-wide text-[#2f5fa8]">
+//           {categoryLabel}
+//         </p>
 
-        <h3 className="mt-1 min-h-[2.5rem] line-clamp-2 text-sm font-bold leading-snug text-[#1a2d49] transition-colors group-hover:text-[#2f5fa8]">
-          {course.title}
-        </h3>
+//         <h3 className="mt-1 min-h-[2.5rem] line-clamp-2 text-sm font-bold leading-snug text-[#1a2d49] transition-colors group-hover:text-[#2f5fa8]">
+//           {course.title}
+//         </h3>
 
-        <p className="text-xs text-slate-600 mt-2 leading-relaxed line-clamp-2 min-h-[2.25rem]">
-          {clampText(course.description || "", 92)}
-        </p>
+//         <p className="text-xs text-slate-600 mt-2 leading-relaxed line-clamp-2 min-h-[2.25rem]">
+//           {clampText(course.description || "", 92)}
+//         </p>
 
-        <div className="mt-3 flex justify-between text-[11px] text-slate-500">
-          <span>⏱ {course.duration}</span>
-          <span className="text-amber-600 font-semibold">
-            ⭐ {course.rating?.toFixed(1) ?? "—"}
-          </span>
-        </div>
+//         <div className="mt-3 flex justify-between text-[11px] text-slate-500">
+//           <span>⏱ {course.duration}</span>
+//           <span className="text-amber-600 font-semibold">
+//             ⭐ {course.rating?.toFixed(1) ?? "—"}
+//           </span>
+//         </div>
 
-        <div className="mt-4 flex justify-between items-center gap-3 border-t border-slate-100 pt-3">
-          <div className="text-sm font-bold text-[#b45309]">{course.price || "Free"}</div>
-          <span className="text-[11px] font-semibold text-[#2f5fa8] underline-offset-2 group-hover:underline">
-            View course →
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
+//         <div className="mt-4 flex justify-between items-center gap-3 border-t border-slate-100 pt-3">
+//           <div className="text-sm font-bold text-[#b45309]">{course.price || "Free"}</div>
+//           <span className="text-[11px] font-semibold text-[#2f5fa8] underline-offset-2 group-hover:underline">
+//             View course →
+//           </span>
+//         </div>
+//       </div>
+//     </Link>
+//   );
+// }

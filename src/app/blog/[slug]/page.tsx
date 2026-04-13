@@ -109,6 +109,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
     fetchBlogs().catch(() => [] as Awaited<ReturnType<typeof fetchBlogs>>),
     fetchCourses().catch(() => [] as Awaited<ReturnType<typeof fetchCourses>>),
   ]);
+  
 
   const post = allBlogs.find((b) => b.slug === slug);
   if (!post) notFound();
@@ -118,9 +119,27 @@ export default async function BlogDetailPage({ params }: PageProps) {
     { name: "Blog", url: "/blog" },
     { name: post.title, url: `/blog/${post.slug}` },
   ]);
-
+  const htmlContent = post.paragraphs?.map((p) => p.content).join("") ?? "";
   const relatedCourses = courses.slice(0, 2);
-  const recommended = allBlogs.filter((b) => b.slug !== slug).slice(0, 2);
+  // const recommended = allBlogs
+  // .filter(
+  //   (b) =>
+  //     b.slug !== slug &&
+  //     b.category?.toLowerCase() === post.category?.toLowerCase()
+  // )
+  // .slice(0, 4);
+  let recommended = allBlogs.filter(
+    (b) =>
+      b.slug !== slug &&
+      b.category?.toLowerCase() === post.category?.toLowerCase()
+  );
+  
+  if (recommended.length < 4) {
+    const fallback = allBlogs.filter((b) => b.slug !== slug);
+    recommended = [...recommended, ...fallback].slice(0, 4);
+  } else {
+    recommended = recommended.slice(0, 4);
+  }
 
   const paragraphs = post.paragraphs?.map((p) => p.content) ?? [];
   const tocSections: { title: string; id: string }[] = [];
@@ -181,15 +200,10 @@ export default async function BlogDetailPage({ params }: PageProps) {
 
             <p className="mt-8 text-lg leading-relaxed text-slate-700">{post.excerpt}</p>
 
-            <div className="mt-8 space-y-6 leading-8 text-slate-700">
-              {renderedParagraphs.map((p, i) => (
-                <div
-                  key={i}
-                  className="prose prose-slate max-w-none"
-                  dangerouslySetInnerHTML={{ __html: p }}
-                />
-              ))}
-            </div>
+            <div
+              className="blog-editor-content mt-8 prose prose-slate max-w-none"
+              dangerouslySetInnerHTML={{ __html: htmlContent }}
+            />
 
             {relatedCourses.length > 0 && (
               <div className="mt-10 overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -207,27 +221,40 @@ export default async function BlogDetailPage({ params }: PageProps) {
             )}
           </article>
 
-          {tocSections.length > 0 ? (
-            <aside className="hidden md:block">
-              <div className="sticky top-24 border-l border-slate-200 pl-6">
-                <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                  Table of Contents
-                </h3>
-                <ul className="mt-4 space-y-2.5">
-                  {tocSections.map((item) => (
-                    <li key={item.id}>
-                      <a
-                        href={`#${item.id}`}
-                        className="text-sm text-slate-700 transition-colors hover:text-[#2f5fa8]"
-                      >
-                        {item.title}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+          <aside className="hidden md:block">
+            <div className="sticky top-24 border-l border-slate-200 pl-6">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Related Blogs
+              </h3>
+
+              <div className="mt-4 space-y-4">
+                {recommended.map((item) => (
+                  <Link
+                    key={item.slug}
+                    href={`/blog/${item.slug}`}
+                    className="block rounded-lg border border-slate-200 bg-white p-3 transition hover:shadow-sm"
+                  >
+                    {item.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        className="mb-2 h-20 w-full rounded-md object-cover"
+                      />
+                    ) : null}
+
+                    <p className="text-[11px] font-semibold text-[#2f5fa8]">
+                      {item.category}
+                    </p>
+
+                    <p className="mt-1 text-sm font-medium leading-snug text-slate-800">
+                      {item.title}
+                    </p>
+                  </Link>
+                ))}
               </div>
-            </aside>
-          ) : null}
+            </div>
+          </aside>
         </div>
       </section>
 

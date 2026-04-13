@@ -39,39 +39,38 @@ function StarRating({ rating }: { rating: number }) {
 function CourseCard({ c }: { c: CourseApi }) {
   const r = courseRating(c);
   const enrolled = enrollmentFromId(c.id);
-  const grad = THUMB_GRADIENTS[Math.abs(c.id) % THUMB_GRADIENTS.length];
-  const initials = c.title
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 3);
 
   return (
     <Link
       href={`/course/${c.slug}`}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white text-left shadow-[0_6px_20px_rgba(15,39,68,0.08)] transition-shadow hover:shadow-[0_10px_30px_rgba(15,39,68,0.14)]"
+      className="group flex flex-col h-full rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 p-5"
     >
-      <div className={`relative flex h-44 w-full items-center justify-center bg-gradient-to-br ${grad}`}>
-        <span className="text-2xl sm:text-3xl font-bold text-white/95 tracking-tight drop-shadow-sm">{initials}</span>
+      {/* Title */}
+      <h3 className="text-[17px] font-semibold text-[#0f2744] leading-snug line-clamp-2">
+        {c.title}
+      </h3>
+
+      {/* Students */}
+      <p className="text-sm text-[#64748b] mt-2">
+        {enrolled.toLocaleString()} students enrolled
+      </p>
+
+      {/* Rating */}
+      <div className="mt-3">
+        <StarRating rating={r} />
       </div>
 
-      <div className="flex flex-col flex-1 p-4 sm:p-5">
-        <h3 className="font-bold text-[#0f2744] text-base sm:text-[17px] leading-snug line-clamp-2 min-h-[2.75rem]">
-          {c.title}
-        </h3>
-        <p className="text-sm text-[#64748b] mt-2">{enrolled.toLocaleString()} Students enrolled</p>
+      {/* Divider */}
+      <div className="border-t border-slate-100 my-4" />
 
-        <div className="mt-auto flex flex-col gap-3 pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <span
-            className="inline-flex w-fit items-center justify-center rounded-md px-5 py-2 text-sm font-semibold text-white shadow-sm transition group-hover:opacity-95"
-            style={{ backgroundColor: PRIMARY }}
-          >
-            View more
-          </span>
-          <StarRating rating={r} />
-        </div>
+      {/* Button */}
+      <div className="mt-auto">
+        <span
+          className="block text-center py-2.5 rounded-lg text-sm font-semibold text-white transition group-hover:opacity-95"
+          style={{ backgroundColor: PRIMARY }}
+        >
+          View Course
+        </span>
       </div>
     </Link>
   );

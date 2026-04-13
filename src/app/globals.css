@@ -16,3 +16,55 @@ body {
   color: var(--foreground);
   font-family: var(--font-poppins), sans-serif;
 }
+
+
+/* Hide scrollbar for carousel */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.ProseMirror {
+  line-height: 1.7;
+}
+
+/* Word-like document margin */
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 2rem;
+  margin: 0.75rem 0;
+}
+
+.ProseMirror li {
+  margin: 0.25rem 0;
+}
+
+/* Paragraph spacing like Word */
+.ProseMirror p {
+  margin: 0.5rem 0;
+}
+
+/* Match blog render styling with TipTap editor content */
+.blog-editor-content {
+  font-family: var(--font-poppins), sans-serif;
+  line-height: 1.7;
+  padding: 24px 40px;
+}
+
+.blog-editor-content ul,
+.blog-editor-content ol {
+  padding-left: 2rem;
+  margin: 0.75rem 0;
+}
+
+.blog-editor-content li {
+  margin: 0.25rem 0;
+}
+
+.blog-editor-content p {
+  margin: 0.5rem 0;
+}

@@ -19,6 +19,8 @@ import { buildCategoryDetailSchema } from "@/app/components/schemas/category-sch
 import { buildBreadcrumbSchema } from "@/app/components/schemas/breadcrumb-schema";
 import { Home } from "lucide-react";
 import type { Metadata } from "next";
+import CoursesCarousel from "@/app/components/CoursesCarousel";
+import BlogsCarousel from "@/app/components/BlogsCarousel";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -147,10 +149,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-function CourseCard({ course }: { course: CourseApi }) {
+function CourseCard({ course, category }: { course: CourseApi, category: CategoryApi }) {
   return (
     <Link
-      href={`/course/${course.slug}`}
+      href={`/courses/${category.slug}/${course.slug}`}
       className="group block rounded-2xl border border-slate-200/90 overflow-hidden bg-white shadow-md shadow-slate-200/30 hover:shadow-xl hover:shadow-blue-900/10 hover:border-[#0066FF]/30 transition duration-200"
     >
       <div className="h-1.5 bg-gradient-to-r from-[#0066FF] to-sky-400" />
@@ -383,11 +385,7 @@ export default async function CategoryPage({ params }: PageProps) {
           </div>
 
           {categoryCourses.length ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categoryCourses.map((course) => (
-                <CourseCard key={course.id} course={course} />
-              ))}
-            </div>
+            <CoursesCarousel courses={categoryCourses} />
           ) : (
             <div className="rounded-2xl border border-dashed border-sky-300 bg-gradient-to-br from-[#E7F3FF]/50 to-white p-12 text-center">
               <p className="text-[#001f3f] font-bold text-lg">
@@ -477,55 +475,34 @@ export default async function CategoryPage({ params }: PageProps) {
           {latestBlogs.length === 0 ? (
             <p className="text-slate-600 text-sm">No blog posts yet.</p>
           ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {latestBlogs.map((post) => (
-                <Link
-                  key={post.id}
-                  href={`/blog/${post.slug}`}
-                  className="group rounded-2xl border border-slate-200/90 bg-white p-6 shadow-md shadow-slate-200/25 hover:shadow-lg hover:border-[#0066FF]/25 transition text-left block h-full flex flex-col"
-                >
-                  <p className="text-xs font-bold text-[#0066FF] mb-2">
-                    {post.category}
-                  </p>
-                  <h3 className="text-lg font-bold text-[#001f3f] mb-2 group-hover:text-[#0066FF] transition-colors">
-                    {post.title}
-                  </h3>
-                  <p className="text-slate-600 text-sm line-clamp-3 flex-1 leading-relaxed">
-                    {post.excerpt}
-                  </p>
-                  <p className="text-slate-400 text-xs mt-4 font-medium">
-                    {formatBlogDate(post.date)}
-                  </p>
-                </Link>
-              ))}
-            </div>
+            <BlogsCarousel blogs={latestBlogs} />
           )}
         </div>
       </section>
-
-      <section
-        className="px-6 md:px-12 py-16 md:py-20 text-white relative overflow-hidden"
-        style={{
-          background:
-            "linear-gradient(135deg, #001f3f 0%, #003d7a 40%, #0066FF 100%)",
-        }}
-      >
+      <section className="px-6 md:px-12 py-16 md:py-20 relative overflow-hidden bg-gradient-to-br from-[#eef5ff] via-[#f8fbff] to-[#e0f2fe]">
+  
+        {/* SOFT GLOW */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-30"
+          className="pointer-events-none absolute inset-0 opacity-40"
           style={{
             background:
-              "radial-gradient(ellipse 50% 70% at 90% 10%, #38bdf8, transparent 55%)",
+              "radial-gradient(circle at 85% 15%, rgba(37,99,235,0.15), transparent 40%)",
           }}
-          aria-hidden
         />
+
         <div className="relative max-w-3xl mx-auto text-center space-y-6">
-          <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight">
+          
+          {/* TITLE */}
+          <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight text-[#0f172a]">
             {ctaTitle}
           </h2>
-          <p className="text-base md:text-lg text-blue-50/95 leading-relaxed">
+
+          {/* SUBTITLE */}
+          <p className="text-base md:text-lg text-slate-600 leading-relaxed">
             {ctaSubtitle}
           </p>
-          <div className="flex flex-wrap justify-center gap-3 pt-2">
+
+          <div className="flex flex-wrap justify-center gap-3 pt-3">
             {Array.isArray(categoryPageContent?.cta_buttons) &&
             categoryPageContent!.cta_buttons!.length > 0 ? (
               categoryPageContent!.cta_buttons!
@@ -543,33 +520,22 @@ export default async function CategoryPage({ params }: PageProps) {
                     href={String(b.link)}
                     className={
                       idx === 0
-                        ? "inline-flex items-center justify-center bg-white text-[#0066FF] px-8 py-3.5 rounded-full font-bold hover:bg-blue-50 transition shadow-lg"
-                        : "inline-flex items-center justify-center border-2 border-white/90 text-white px-8 py-3.5 rounded-full font-bold hover:bg-white/10 transition"
+                        ? "inline-flex items-center justify-center bg-[#2563EB] text-white px-8 py-3.5 rounded-full font-bold shadow-md hover:bg-[#1d4ed8] transition"
+                        : "inline-flex items-center justify-center border border-[#2563EB]/30 text-[#1e3a8a] px-8 py-3.5 rounded-full font-bold hover:bg-[#eff6ff] transition"
                     }
                   >
                     {String(b.text)}
                   </Link>
                 ))
             ) : (
-              <>
-                <CounsellingModal
-                  buttonText="Enroll now"
-                  className="inline-flex items-center justify-center bg-white text-[#0066FF] px-8 py-3.5 rounded-full font-bold hover:bg-blue-50 transition shadow-lg"
-                />
-                <Link
-                  href="/brochure.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center border-2 border-white/90 text-white px-8 py-3.5 rounded-full font-bold hover:bg-white/10 transition"
-                >
-                  Download brochure
-                </Link>
-              </>
+              <CounsellingModal
+                buttonText="Enroll now"
+                className="inline-flex items-center justify-center bg-[#2563EB] text-white px-8 py-3.5 rounded-full font-bold shadow-md hover:bg-[#1d4ed8] transition"
+              />
             )}
           </div>
         </div>
       </section>
-
       {showFaq ? (
         <section className="bg-gradient-to-b from-slate-100/80 to-[#E7F3FF]/35 px-6 md:px-12 py-14 md:py-16">
           <div className="mx-auto max-w-6xl rounded-2xl border border-sky-100 bg-white shadow-lg shadow-slate-200/40 overflow-hidden">
