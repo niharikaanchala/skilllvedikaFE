@@ -226,6 +226,17 @@ export default async function CategoryPage({ params }: PageProps) {
     pageContent?.whyTitle?.trim() ||
     `Why learn ${category.name}?`;
   const whyTitle = injectCategoryName(whyTitleRaw, category.name);
+  const heroLabel =
+    categoryPageContent?.hero_title?.trim() ||
+    pageContent?.heroTitle?.trim() ||
+    "Category";
+  const heroDescription =
+    categoryPageContent?.hero_subtitle?.trim() ||
+    pageContent?.heroSubtitle?.trim() ||
+    category.description;
+  const hasCustomHeroLabel = Boolean(
+    categoryPageContent?.hero_title?.trim() || pageContent?.heroTitle?.trim(),
+  );
 
   const whyPoints = (
     (categoryPageContent?.why_points?.length
@@ -312,43 +323,21 @@ export default async function CategoryPage({ params }: PageProps) {
               {category.name.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              {categoryPageContent?.hero_title?.trim() ? (
+              {hasCustomHeroLabel ? (
                 <p className="text-xs font-bold tracking-[0.15em] text-[#0066FF] uppercase">
-                  {injectCategoryName(
-                    categoryPageContent.hero_title.trim(),
-                    category.name,
-                  )}
-                </p>
-              ) : pageContent?.heroTitle?.trim() ? (
-                <p className="text-xs font-bold tracking-[0.15em] text-[#0066FF] uppercase">
-                  {injectCategoryName(pageContent.heroTitle.trim(), category.name)}
+                  {injectCategoryName(heroLabel, category.name)}
                 </p>
               ) : (
                 <p className="text-xs font-bold tracking-[0.15em] text-slate-500 uppercase">
-                  Category
+                  {injectCategoryName(heroLabel, category.name)}
                 </p>
               )}
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#001f3f] mt-3 tracking-tight">
                 {category.name}
               </h1>
               <p className="text-sm md:text-base text-slate-600 mt-4 max-w-2xl leading-relaxed">
-                {category.description}
+                {injectCategoryName(heroDescription, category.name)}
               </p>
-              {categoryPageContent?.hero_subtitle?.trim() ? (
-                <p className="text-sm text-slate-600 mt-4 max-w-2xl leading-relaxed border-l-4 border-[#0066FF] pl-4 bg-white/60 rounded-r-lg py-2 pr-3">
-                  {injectCategoryName(
-                    categoryPageContent.hero_subtitle.trim(),
-                    category.name,
-                  )}
-                </p>
-              ) : pageContent?.heroSubtitle?.trim() ? (
-                <p className="text-sm text-slate-600 mt-4 max-w-2xl leading-relaxed border-l-4 border-[#0066FF] pl-4 bg-white/60 rounded-r-lg py-2 pr-3">
-                  {injectCategoryName(
-                    pageContent.heroSubtitle.trim(),
-                    category.name,
-                  )}
-                </p>
-              ) : null}
             </div>
           </div>
 

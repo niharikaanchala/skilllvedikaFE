@@ -418,9 +418,11 @@ async function getCourses() {
     const res = await fetch(apiUrl("/api/courses/"), {
       cache: "no-store",
     });
-    return res.json();
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
   } catch {
-    return null;
+    return [];
   }
 }
 /* ✅ SEO (VISIBLE IN VIEW SOURCE) */

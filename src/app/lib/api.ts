@@ -32,6 +32,21 @@ export type CategoryApi = {
   icon?: string | null;
 };
 
+export type SiteSettingApi = {
+  id: number;
+  google_analytics_id?: string | null;
+};
+
+export type LegalPageApi = {
+  id?: number;
+  page_type?: "terms" | "privacy";
+  title?: string;
+  content?: string;
+  seo_meta_title?: string;
+  seo_meta_description?: string;
+  seo_meta_keywords?: string;
+};
+
 export type CourseApi = {
   id: number;
   title: string;
@@ -427,6 +442,39 @@ export async function fetchCategoryPageContent(categoryId: number): Promise<Cate
       : [];
     const cta_buttons = Array.isArray(raw.cta_buttons) ? raw.cta_buttons : [];
     return { ...raw, faq_items, why_points, cta_buttons };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchSiteSettings(): Promise<SiteSettingApi[]> {
+  try {
+    const res = await fetch(apiUrl("/api/settings_app/"), { cache: "no-store" });
+    if (!res.ok) return [];
+    const data = (await res.json()) as unknown;
+    return Array.isArray(data) ? (data as SiteSettingApi[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchLegalPage(
+  pageType: "terms" | "privacy",
+): Promise<LegalPageApi | null> {
+  try {
+    const res = await fetch(apiUrl(`/api/legal/${pageType}/`), {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const raw = (await res.json()) as unknown;
+    if (Array.isArray(raw)) {
+      const first = raw[0] as LegalPageApi | undefined;
+      return first ?? null;
+    }
+    if (raw && typeof raw === "object") {
+      return raw as LegalPageApi;
+    }
+    return null;
   } catch {
     return null;
   }

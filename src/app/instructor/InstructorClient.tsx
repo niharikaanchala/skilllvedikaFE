@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Home } from "lucide-react";
 import { apiUrl } from "@/app/lib/api";
@@ -34,10 +34,14 @@ export type InstructorPageData = {
 
 type Props = {
   initialData: InstructorPageData | null;
+  courses: Array<{ id: number; title: string; category_name?: string }>;
 };
 
-export default function InstructorClient({ initialData }: Props) {
+export default function InstructorClient({ initialData, courses }: Props) {
   const data: InstructorPageData = initialData ?? {};
+  const courseList = Array.isArray(courses) ? courses : [];
+  const formSectionRef = useRef<HTMLElement | null>(null);
+  const firstNameInputRef = useRef<HTMLInputElement | null>(null);
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -49,10 +53,19 @@ export default function InstructorClient({ initialData }: Props) {
     message: "",
     agreed_to_terms: false,
   });
+  const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
+
+  useEffect(() => {
+    if (courseList.length > 0) {
+      setSelectedCourse(courseList[0].id);
+    }
+  }, [courseList]);
+
+  const selectedCourseObj = courseList.find((course) => course.id === selectedCourse);
 
   const onFieldChange = (e: any) => {
     const { name, value, type, checked } = e.target;
@@ -75,10 +88,16 @@ export default function InstructorClient({ initialData }: Props) {
 
     setSubmitting(true);
     try {
+      const combinedMessage = [formData.message, selectedCourseObj?.title ? `Interested course: ${selectedCourseObj.title}` : ""]
+        .filter(Boolean)
+        .join("\n");
       const res = await fetch(apiUrl("/api/instructor/applications/submit/"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          message: combinedMessage,
+        }),
       });
 
       if (!res.ok) throw new Error();
@@ -98,6 +117,13 @@ export default function InstructorClient({ initialData }: Props) {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const scrollToApplicationForm = () => {
+    formSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => {
+      firstNameInputRef.current?.focus();
+    }, 350);
   };
 
   // Prevent runtime crash if backend is down / returns empty.
@@ -123,8 +149,14 @@ export default function InstructorClient({ initialData }: Props) {
         <h1 className="text-4xl md:text-5xl font-extrabold" style={{ color: data.hero?.text_color || "#0C1A35" }}>{data.hero?.title}</h1>
         <p className="mt-4 max-w-2xl mx-auto leading-relaxed text-[#5B6B88]">{data.hero?.subtitle}</p>
         <div className="mt-6 flex justify-center gap-4">
-          <button className="bg-[#0C2D57] text-white px-6 py-2.5 rounded-md text-sm font-semibold hover:bg-[#0A2446] transition">{data.hero?.button_primary_text}</button>
-          <button className="border border-[#CBD5E1] bg-white px-6 py-2.5 rounded-md text-sm font-semibold text-[#0C1A35] hover:bg-slate-50 transition">{data.hero?.button_secondary_text}</button>
+          <button
+            type="button"
+            onClick={scrollToApplicationForm}
+            className="bg-[#0C2D57] text-white px-6 py-2.5 rounded-md text-sm font-semibold hover:bg-[#0A2446] transition"
+          >
+            {data.hero?.button_primary_text || "Apply Now"}
+          </button>
+          {/* <button className="border border-[#CBD5E1] bg-white px-6 py-2.5 rounded-md text-sm font-semibold text-[#0C1A35] hover:bg-slate-50 transition">{data.hero?.button_secondary_text}</button> */}
         </div>
       </section>
 
@@ -149,11 +181,17 @@ export default function InstructorClient({ initialData }: Props) {
       <section className="py-14 px-6 md:px-12 text-center" style={{ backgroundColor: data.cta?.background_color || "#EAF0F8" }}>
         <h2 className="text-4xl md:text-5xl font-extrabold" style={{ color: data.cta?.text_color || "#1E3A68" }}>{data.cta?.title}</h2>
         <p className="text-[#5B6B88] mt-4 max-w-2xl mx-auto">{data.cta?.subtitle}</p>
-        <button className="mt-6 bg-[#0C2D57] text-white px-8 py-2.5 rounded-md text-sm font-semibold hover:bg-[#0A2446] transition">{data.cta?.button_text}</button>
+        <button
+          type="button"
+          onClick={scrollToApplicationForm}
+          className="mt-6 bg-[#0C2D57] text-white px-8 py-2.5 rounded-md text-sm font-semibold hover:bg-[#0A2446] transition"
+        >
+          {data.cta?.button_text || "Apply Now"}
+        </button>
       </section>
 
       {/* FORM */}
-      <section className="py-14 px-6 md:px-12 bg-white">
+      <section ref={formSectionRef} className="py-14 px-6 md:px-12 bg-white">
         <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
           <h2 className="text-3xl font-extrabold text-center text-[#0C1A35]">{data.form?.title}</h2>
           <p className="text-center text-[#5B6B88] mt-2">{data.form?.subtitle}</p>
@@ -162,7 +200,7 @@ export default function InstructorClient({ initialData }: Props) {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-semibold">First Name *</label>
-                <input name="first_name" value={formData.first_name} onChange={onFieldChange} className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2C6ED5]" />
+                <input ref={firstNameInputRef} name="first_name" value={formData.first_name} onChange={onFieldChange} className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2C6ED5]" />
               </div>
               <div>
                 <label className="text-sm font-semibold">Last Name *</label>
@@ -200,6 +238,23 @@ export default function InstructorClient({ initialData }: Props) {
               <label className="text-sm font-semibold">Message (Optional)</label>
               <textarea name="message" value={formData.message} onChange={onFieldChange} placeholder="Tell us briefly about your expertise..." rows={4} className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2C6ED5]" />
               <p className="text-xs text-[#5B6B88] mt-2">Optional - helps our team understand your profile better.</p>
+            </div>
+            <div>
+              <label className="text-sm font-semibold">Course *</label>
+              <select
+                value={selectedCourse ?? ""}
+                onChange={(e) => setSelectedCourse(Number(e.target.value))}
+                className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2C6ED5] bg-white"
+                required
+              >
+                <option value="">Select course</option>
+                {courseList.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.title}
+                    {course.category_name ? ` (${course.category_name})` : ""}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <label className="flex items-start gap-2 text-sm">

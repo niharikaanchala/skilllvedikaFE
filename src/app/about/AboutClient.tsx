@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 type Course = {
   id: number;
   title: string;
+  category_name?: string;
 };
 
 export default function AboutPage({ initialData, courses }: { initialData: any, courses: Course[] }) {
@@ -40,14 +41,15 @@ export default function AboutPage({ initialData, courses }: { initialData: any, 
     agree: false,
   });
 
+  const courseList = Array.isArray(courses) ? courses : [];
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   useEffect(() => {
-    if (courses.length > 0) {
-      setSelectedCourse(courses[0].id);
+    if (courseList.length > 0) {
+      setSelectedCourse(courseList[0].id);
     }
-  }, [courses]);
+  }, [courseList]);
 
-  const selectedCourseObj = courses.find(
+  const selectedCourseObj = courseList.find(
     (c: any) => c.id === selectedCourse
   );
 
@@ -246,9 +248,10 @@ export default function AboutPage({ initialData, courses }: { initialData: any, 
                 >
                   <option value="">Select a course</option>
 
-                  {courses.map((course: any) => (
+                  {courseList.map((course: any) => (
                     <option key={course.id} value={course.id}>
                       {course.title}
+                      {course.category_name ? ` (${course.category_name})` : ""}
                     </option>
                   ))}
                 </select>

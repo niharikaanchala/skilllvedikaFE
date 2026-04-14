@@ -553,6 +553,7 @@ import { Home } from "lucide-react";
 import Head from "next/head";
 import OnJobSupportClient from "./OnJobSupportClient"; // CSR Component
 import { apiUrl } from "@/app/lib/api";
+import CounsellingModal from "@/app/course/[id]/CounsellingModal";
 
 type FeatureData = { title?: string; desc?: string; text?: string };
 type AudienceItem = { id: number; tag: string; title: string; desc: string };
@@ -699,11 +700,10 @@ export default async function OnJobSupportPage() {
                 {hero.title || meta?.meta_title || "On Job Support"}
               </h1>
               <p className="mt-4 text-[#5B6B88] max-w-md">{hero.subtitle || ""}</p>
-              {hero.button_text && (
-                <a href={hero.button_link || "#"} className="mt-6 inline-block bg-[#0C2D57] text-white px-6 py-2.5 rounded-md text-sm font-semibold">
-                  {hero.button_text}
-                </a>
-              )}
+              <CounsellingModal
+                buttonText={hero.button_text || "Get Support"}
+                className="mt-6 inline-block bg-[#0C2D57] text-white px-6 py-2.5 rounded-md text-sm font-semibold hover:bg-[#0A2446] transition"
+              />
             </div>
             <div className="flex justify-center">
               <div className="w-72 h-72 bg-[#DDE7F5] rounded-full flex items-center justify-center">

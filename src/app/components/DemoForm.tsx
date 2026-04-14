@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 export default function DemoForm({ demo, courses }: any) {
+  const courseList = Array.isArray(courses) ? courses : [];
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -14,12 +15,12 @@ export default function DemoForm({ demo, courses }: any) {
   });
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   useEffect(() => {
-    if (courses.length > 0) {
-      setSelectedCourse(courses[0].id);
+    if (courseList.length > 0) {
+      setSelectedCourse(courseList[0].id);
     }
-  }, [courses]);
+  }, [courseList]);
 
-  const selectedCourseObj = courses.find(
+  const selectedCourseObj = courseList.find(
     (c: any) => c.id === selectedCourse
   );
 
@@ -123,9 +124,10 @@ const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/on-job-supp
   required
 >
   <option value="">Choose course</option>
-  {courses.map((course: any) => (
+  {courseList.map((course: any) => (
     <option key={course.id} value={course.id}>
       {course.title}
+      {course.category_name ? ` (${course.category_name})` : ""}
     </option>
   ))}
 </select>

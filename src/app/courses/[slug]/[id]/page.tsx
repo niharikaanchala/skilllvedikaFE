@@ -359,12 +359,12 @@ const handleSubmit=async()=>{
                 className="font-bold px-7 py-3.5 rounded-xl shadow-lg transition hover:brightness-110 text-[#0a2540] bg-[#ffcc00]"
               />
 
-              <CounsellingModal
+              {/* <CounsellingModal
                 courseId={course.id}
                 courseTitle={course.title}
                 buttonText="Get Free Counselling"
                 className="border-2 border-white/40 text-white px-7 py-3.5 rounded-xl font-semibold hover:bg-white/10 transition backdrop-blur-sm"
-              />
+              /> */}
             </div>
           </div>
 

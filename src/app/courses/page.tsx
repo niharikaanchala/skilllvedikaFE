@@ -103,6 +103,9 @@ export default async function CoursesPage({
   const qRaw = sp.q ?? sp.query ?? sp.search;
   const q = (Array.isArray(qRaw) ? qRaw[0] : qRaw ?? "").trim();
   const qLower = q.toLowerCase();
+  const categoryRaw = sp.category;
+  const category = (Array.isArray(categoryRaw) ? categoryRaw[0] : categoryRaw ?? "").trim();
+  const categoryLower = category.toLowerCase();
 
   const [categoriesRes, coursesRes, blogsRes, pageContentRes] =
     await Promise.allSettled([
@@ -119,16 +122,24 @@ export default async function CoursesPage({
   const pageContent =
     pageContentRes.status === "fulfilled" ? pageContentRes.value : null;
 
-  const filteredCourses = qLower
-    ? courses.filter((course: CourseApi) => {
-        const categoryLabel =
-          typeof course.category === "object" && course.category
-            ? course.category.name
-            : course.category_name || "";
-        const haystack = `${course.title ?? ""} ${course.description ?? ""} ${categoryLabel}`.toLowerCase();
-        return haystack.includes(qLower);
-      })
-    : courses;
+    const filteredCourses = courses.filter((course: CourseApi) => {
+      const categoryLabel =
+        typeof course.category === "object" && course.category
+          ? course.category.slug || course.category.name
+          : course.category_name || "";
+    
+      const matchesSearch = qLower
+        ? `${course.title ?? ""} ${course.description ?? ""} ${categoryLabel}`
+            .toLowerCase()
+            .includes(qLower)
+        : true;
+    
+      const matchesCategory = categoryLower
+        ? categoryLabel.toLowerCase().includes(categoryLower)
+        : true;
+    
+      return matchesSearch && matchesCategory;
+    });
 
   const sortedCourses = filteredCourses
     ?.slice()

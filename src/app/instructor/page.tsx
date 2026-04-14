@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import InstructorClient, { type InstructorPageData } from "./InstructorClient";
-import { apiUrl } from "@/app/lib/api";
+import { apiUrl, fetchCourses } from "@/app/lib/api";
 
 async function fetchInstructorPageData(): Promise<InstructorPageData | null> {
   try {
@@ -58,8 +58,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function InstructorPage() {
-  const initialData = await fetchInstructorPageData();
-  return <InstructorClient initialData={initialData} />;
+  const [initialData, courses] = await Promise.all([
+    fetchInstructorPageData(),
+    fetchCourses().catch(() => []),
+  ]);
+  return <InstructorClient initialData={initialData} courses={courses} />;
 }
 
 //   useEffect(() => {
