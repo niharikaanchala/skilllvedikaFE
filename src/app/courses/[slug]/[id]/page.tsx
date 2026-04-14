@@ -423,9 +423,10 @@ const handleSubmit=async()=>{
       <section className="max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-16 space-y-14 md:space-y-16">
         <div className={`${cardBase} p-6 md:p-8`}>
           <SectionTitle>{aboutHeading}</SectionTitle>
-          <p className="text-slate-600 mt-4 leading-relaxed whitespace-pre-line">
-            {aboutText}
-          </p>
+          <div
+            className="text-slate-600 mt-4 leading-relaxed prose max-w-none"
+            dangerouslySetInnerHTML={{ __html: aboutText }}
+          />
         </div>
 
         {skills.length > 0 ? (
@@ -489,11 +490,10 @@ const handleSubmit=async()=>{
                       +
                     </span>
                   </summary>
-                  <div className="mt-3 text-slate-600 text-sm leading-relaxed border-t border-sky-100 pt-3 space-y-2">
-                    {(item.content || "").split("\n").map((line, i) => (
-                      <p key={i}>{line}</p>
-                    ))}
-                  </div>
+                  <div
+                    className="mt-3 text-slate-600 text-sm leading-relaxed border-t border-sky-100 pt-3 prose max-w-none"
+                    dangerouslySetInnerHTML={{ __html: item.content || "" }}
+                  />
                 </details>
               ))}
             </div>
@@ -550,9 +550,10 @@ const handleSubmit=async()=>{
             className={`${cardBase} p-6 md:p-8 bg-gradient-to-br from-white via-sky-50/50 to-white`}
           >
             <SectionTitle>{placementSupportHeading}</SectionTitle>
-            <p className="mt-4 text-sm text-slate-600 max-w-2xl leading-relaxed whitespace-pre-line">
-              {placementSupportText}
-            </p>
+            <div
+              className="mt-4 text-sm text-slate-600 max-w-2xl leading-relaxed prose max-w-none"
+              dangerouslySetInnerHTML={{ __html: placementSupportText }}
+            />
           </div>
         ) : (
           <div

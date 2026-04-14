@@ -98,9 +98,9 @@ export default async function BlogPage() {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-[#0C1A35]">Featured Articles</h2>
-            <Link href="/blog" className="text-sm text-[#2C6ED5] font-medium hover:underline">
+            {/* <Link href="/blog" className="text-sm text-[#2C6ED5] font-medium hover:underline">
               View All →
-            </Link>
+            </Link> */}
           </div>
 
           {featuredArticles.length === 0 ? (
