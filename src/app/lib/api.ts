@@ -451,6 +451,7 @@ export async function fetchSiteSettings(): Promise<SiteSettingApi[]> {
     const res = await fetch(apiUrl("/api/settings_app/"), { next: { revalidate: 300 } });
     if (!res.ok) return [];
     const data = (await res.json()) as unknown;
+    console.log("data: ", data)
     return Array.isArray(data) ? (data as SiteSettingApi[]) : [];
   } catch {
     return [];

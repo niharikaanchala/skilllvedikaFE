@@ -229,7 +229,7 @@ export default async function HeroSection({ data }: Props) {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={data.image}
-              alt=""
+              alt={line1 && line2 ? `${line1} ${line2}` : heading}
               className="relative z-10 max-h-[220px] max-w-[240px] rounded-3xl object-contain sm:max-h-[250px] sm:max-w-[270px] md:max-h-[390px] md:max-w-[390px]"
             />
           ) : showRightCard ? (

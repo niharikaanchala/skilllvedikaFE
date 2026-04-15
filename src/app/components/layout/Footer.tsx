@@ -9,6 +9,9 @@ export default function Footer() {
   const brandLabel = branding?.brand_name?.trim() || "SkillVedika";
   const logo = branding?.logo || null;
 
+  console.log(logo)
+  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+
   return (
     <footer className="bg-[#0f2d56] text-white">
       <div className="mx-auto max-w-7xl px-6 pb-8 pt-8 md:px-10">
@@ -44,7 +47,7 @@ export default function Footer() {
             <div className="flex items-center gap-2">
               {logo && (
                 <img
-                  src={logo}
+                  src={`${API_URL}${logo}`}
                   alt={brandLabel}
                   loading="lazy"
                   decoding="async"
