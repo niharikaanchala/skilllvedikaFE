@@ -7,17 +7,17 @@ type Props = {
   data?: HomeHeroApi | null;
 };
 
-function headingLines(heading: string): [string, string | null] {
+function headingSegments(heading: string): string[] {
   const parts = heading
     .split(/\n/)
     .map((s) => s.trim())
     .filter(Boolean);
-  if (parts.length >= 2) return [parts[0], parts.slice(1).join(" ")];
+  if (parts.length >= 2) return parts;
   const idx = heading.indexOf(".");
   if (idx > 0 && idx < heading.length - 1) {
     return [heading.slice(0, idx + 1).trim(), heading.slice(idx + 1).trim()];
   }
-  return [heading, null];
+  return [heading];
 }
 
 function highlightLines(text: string | undefined): string[] {
@@ -132,7 +132,8 @@ export default async function HeroSection({ data }: Props) {
   }
 
   const heading = data.heading.trim();
-  const [line1, line2] = headingLines(heading);
+  const headingParts = headingSegments(heading);
+  const secondLineIndex = headingParts.length >= 2 ? 1 : -1;
   const subheading = data.subheading?.trim();
   const highlights = highlightLines(data.highlights);
   const tags = tagList(data.popular_tags);
@@ -155,13 +156,12 @@ export default async function HeroSection({ data }: Props) {
       <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-6 px-4 py-8 sm:px-6 md:grid-cols-[1.15fr_0.85fr] md:gap-6 md:px-10 md:py-12">
       <div className="w-full max-w-none">
         <h1 className="text-2xl font-extrabold leading-[1.15] tracking-tight text-[#152c4e] sm:text-3xl md:text-5xl">
-          {line1}
-          {line2 ? (
-            <>
-              <br />
-              <span className="text-[#2d5fa8]">{line2}</span>
-            </>
-          ) : null}
+          {headingParts.map((line, index) => (
+            <span key={`${line}-${index}`} className={index === secondLineIndex ? "text-[#2d5fa8]" : undefined}>
+              {index > 0 ? <br /> : null}
+              {line}
+            </span>
+          ))}
         </h1>
         {subheading ? <p className="mt-4 text-sm text-slate-600 sm:text-[15px] md:text-base">{subheading}</p> : null}
 
@@ -229,7 +229,7 @@ export default async function HeroSection({ data }: Props) {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={data.image}
-              alt={line1 && line2 ? `${line1} ${line2}` : heading}
+              alt={heading}
               className="relative z-10 max-h-[220px] max-w-[240px] rounded-3xl object-contain sm:max-h-[250px] sm:max-w-[270px] md:max-h-[390px] md:max-w-[390px]"
             />
           ) : showRightCard ? (

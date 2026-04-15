@@ -98,7 +98,7 @@ export default function CareerServicesClient({ initialData, courses, blogs }: Pr
       </section>
 
       {/* HERO */}
-      <section className="bg-gradient-to-r from-blue-100 to-blue-200 text-[#0C1A35] py-20 px-6">
+      <section className="bg-gradient-to-r from-sky-100 to-sky-200 text-[#0C1A35] py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             {data.hero?.title || "Career Services"}
@@ -312,7 +312,7 @@ export default function CareerServicesClient({ initialData, courses, blogs }: Pr
       )}
 
       {/* CTA */}
-      <section className="bg-gradient-to-r from-blue-400 to-blue-300 text-[#0C1A35] text-center py-16 px-6">
+      <section className="bg-gradient-to-r from-sky-200 to-sky-100 text-[#0C1A35] text-center py-16 px-6">
         <h2 className="text-3xl font-bold mb-4">
           {data.cta?.title}
         </h2>

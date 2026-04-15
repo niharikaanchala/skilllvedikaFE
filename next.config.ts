@@ -35,6 +35,11 @@ const nextConfig: NextConfig = {
         hostname: "www.skillvedika.com",
         pathname: "/media/**",
       },
+      {
+        protocol: "https",
+        hostname: "api.skillvedika.com",
+        pathname: "/media/**",
+      },
     ],
   },
   async headers() {

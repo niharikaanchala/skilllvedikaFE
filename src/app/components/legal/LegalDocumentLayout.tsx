@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { enforcePoppinsHtml } from "@/app/lib/html";
 
 type Props = {
   title: string;
@@ -21,7 +22,7 @@ export default function LegalDocumentLayout({ title, content }: Props) {
           <h1 className="text-3xl font-extrabold text-[#001f3f] md:text-4xl">{title}</h1>
           <div
             className="prose prose-slate mt-6 max-w-none"
-            dangerouslySetInnerHTML={{ __html: content }}
+            dangerouslySetInnerHTML={{ __html: enforcePoppinsHtml(content) }}
           />
         </div>
       </section>

@@ -26,7 +26,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const settings = await fetchSiteSettings();
-  console.log("settings: ", settings)
+  // console.log("settings: ", settings)
   const gaId =
     settings
       .map((s) => String(s.google_analytics_id ?? "").trim())

@@ -23,6 +23,15 @@ body {
   font-family: var(--font-poppins), sans-serif;
 }
 
+/* Force CMS/rich-text content to use Poppins even when inline styles include other fonts. */
+.prose :where(*) {
+  font-family: var(--font-poppins), sans-serif !important;
+}
+
+.blog-editor-content :where(*) {
+  font-family: var(--font-poppins), sans-serif !important;
+}
+
 
 /* Hide scrollbar for carousel */
 .no-scrollbar::-webkit-scrollbar {

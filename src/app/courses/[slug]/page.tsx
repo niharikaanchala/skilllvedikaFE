@@ -17,6 +17,8 @@ import { browseCategories } from "@/app/lib/courses";
 import { formatBlogDate } from "@/app/lib/blog-utils";
 import { buildCategoryDetailSchema } from "@/app/components/schemas/category-schema";
 import { buildBreadcrumbSchema } from "@/app/components/schemas/breadcrumb-schema";
+import { buildFaqPageSchema } from "@/app/components/schemas/faq-schema";
+import { enforcePoppinsHtml } from "@/app/lib/html";
 import { Home } from "lucide-react";
 import type { Metadata } from "next";
 import CoursesCarousel from "@/app/components/CoursesCarousel";
@@ -275,6 +277,17 @@ export default async function CategoryPage({ params }: PageProps) {
     { name: "Courses", url: "/courses" },
     { name: category.name, url: `/courses/${category.slug}` },
   ]);
+  const faqSchema = showFaq
+    ? buildFaqPageSchema(
+        faqItems
+          .filter((i) => i.question?.trim() && i.answer?.trim())
+          .map((i) => ({ question: i.question, answer: i.answer })),
+        {
+          name: faqHeading || `${category.name} FAQs`,
+          url: `/courses/${category.slug}`,
+        },
+      )
+    : null;
 
   return (
     <>
@@ -290,6 +303,14 @@ export default async function CategoryPage({ params }: PageProps) {
           __html: JSON.stringify(categoryDetailSchema).replace(/<\/script/gi, "<\\/script"),
         }}
       />
+      {faqSchema ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(faqSchema).replace(/<\/script/gi, "<\\/script"),
+          }}
+        />
+      ) : null}
       <main className="min-h-screen bg-gradient-to-b from-[#E7F3FF]/90 via-white to-slate-50/80 text-slate-800 pt-16">
       {/* Breadcrumb */}
       <section className="px-6 md:px-12 py-4 border-b border-sky-100/80 bg-white/70">
@@ -368,7 +389,7 @@ export default async function CategoryPage({ params }: PageProps) {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-4 mb-10">
             <h2 className="text-base md:text-lg font-bold text-[#001f3f] shrink-0">
-              Courses in this category
+              {category.name} Programs
             </h2>
             <div className="flex-1 h-1 rounded-full bg-gradient-to-r from-[#0066FF] via-sky-500 to-blue-200" />
           </div>
@@ -417,9 +438,12 @@ export default async function CategoryPage({ params }: PageProps) {
                   >
                     ✓
                   </span>
-                  <span className="text-sm text-slate-700 leading-relaxed pt-1">
-                    {injectCategoryName(point, category.name)}
-                  </span>
+                  <span
+                    className="text-sm text-slate-700 leading-relaxed pt-1 prose prose-sm max-w-none prose-p:my-0 prose-ul:my-0 prose-ol:my-0"
+                    dangerouslySetInnerHTML={{
+                      __html: enforcePoppinsHtml(injectCategoryName(point, category.name)),
+                    }}
+                  />
                 </li>
               ))}
             </ul>

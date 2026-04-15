@@ -252,11 +252,11 @@ export default async function CoursesPage({
       </section>
 
       {/* Hero */}
-      <section className="border-b border-slate-200/70 bg-gradient-to-br from-[#eef5ff] via-[#f8fbff] to-[#e3edfb] px-6 py-14 md:px-12 md:py-20">
+      <section className="border-b border-slate-200/70 bg-gradient-to-br from-sky-50 via-blue-50 to-sky-100 px-6 py-14 md:px-12 md:py-20">
         <div className="max-w-6xl mx-auto">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#2f5fa8]">
+          {/* <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#2f5fa8]">
             SkillVedika
-          </p>
+          </p> */}
           <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-[#1a2d49] md:text-4xl lg:text-5xl">
             {pageContent?.heroTitle || "Explore Our Career-Transforming Courses"}
           </h1>

@@ -21,6 +21,8 @@ function apiOrigin(): string {
 export function apiUrl(path: string): string {
   const p = path.startsWith("/") ? path : `/${path}`;
   const origin = apiOrigin();
+  // console.log("origin: ", origin)
+  // console.log("p: ", p)
   return origin ? `${origin}${p}` : p;
 }
 
@@ -434,12 +436,64 @@ export async function fetchCategoryPageContent(categoryId: number): Promise<Cate
     });
     if (res.status === 404) return null;
     if (!res.ok) return null;
-    const raw = (await res.json()) as CategoryPageContentApi;
-    const faq_items = Array.isArray(raw.faq_items) ? raw.faq_items : [];
-    const why_points = Array.isArray(raw.why_points)
-      ? raw.why_points.filter((x) => typeof x === "string")
-      : [];
-    const cta_buttons = Array.isArray(raw.cta_buttons) ? raw.cta_buttons : [];
+    const raw = (await res.json()) as CategoryPageContentApi & {
+      faq_items?: CategoryPageContentApi["faq_items"] | string;
+      faqItems?: CategoryPageContentApi["faq_items"] | string;
+      why_points?: CategoryPageContentApi["why_points"] | string;
+      whyPoints?: CategoryPageContentApi["why_points"] | string;
+      cta_buttons?: CategoryPageContentApi["cta_buttons"] | string;
+      ctaButtons?: CategoryPageContentApi["cta_buttons"] | string;
+    };
+
+    let faq_items: CategoryPageContentApi["faq_items"] = [];
+    const faqRaw = raw.faq_items ?? raw.faqItems;
+    if (Array.isArray(faqRaw)) {
+      faq_items = faqRaw;
+    } else if (typeof faqRaw === "string") {
+      try {
+        const parsed = JSON.parse(faqRaw);
+        if (Array.isArray(parsed)) faq_items = parsed;
+      } catch {
+        faq_items = [];
+      }
+    }
+
+    let why_points: CategoryPageContentApi["why_points"] = [];
+    const whyRaw = raw.why_points ?? raw.whyPoints;
+    if (Array.isArray(whyRaw)) {
+      why_points = whyRaw.filter((x): x is string => typeof x === "string");
+    } else if (typeof whyRaw === "string") {
+      try {
+        const parsed = JSON.parse(whyRaw);
+        if (Array.isArray(parsed)) {
+          why_points = parsed.filter((x): x is string => typeof x === "string");
+        } else {
+          why_points = whyRaw
+            .split("\n")
+            .map((x) => x.trim())
+            .filter(Boolean);
+        }
+      } catch {
+        why_points = whyRaw
+          .split("\n")
+          .map((x) => x.trim())
+          .filter(Boolean);
+      }
+    }
+
+    let cta_buttons: CategoryPageContentApi["cta_buttons"] = [];
+    const ctaRaw = raw.cta_buttons ?? raw.ctaButtons;
+    if (Array.isArray(ctaRaw)) {
+      cta_buttons = ctaRaw;
+    } else if (typeof ctaRaw === "string") {
+      try {
+        const parsed = JSON.parse(ctaRaw);
+        if (Array.isArray(parsed)) cta_buttons = parsed;
+      } catch {
+        cta_buttons = [];
+      }
+    }
+
     return { ...raw, faq_items, why_points, cta_buttons };
   } catch {
     return null;
@@ -451,7 +505,7 @@ export async function fetchSiteSettings(): Promise<SiteSettingApi[]> {
     const res = await fetch(apiUrl("/api/settings_app/"), { next: { revalidate: 300 } });
     if (!res.ok) return [];
     const data = (await res.json()) as unknown;
-    console.log("data: ", data)
+    // console.log("data: ", data)
     return Array.isArray(data) ? (data as SiteSettingApi[]) : [];
   } catch {
     return [];

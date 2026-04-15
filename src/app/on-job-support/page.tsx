@@ -686,9 +686,17 @@ export default async function OnJobSupportPage() {
 
   const fixImageUrl = (raw: string | null) => {
     const u = (raw ?? "").trim();
-    if (!u) return "";
-    if (/^https?:\/\//i.test(u)) return u;
+    // console.log("u: ", u)
+    if (!u){
+      console.log("data not found");
+      return "";
+    }
+    if (/^https?:\/\//i.test(u)){
+      // console.log("url: ", u)
+      return u;
+    }
     const path = u.startsWith("/") ? u : `/${u}`;
+    console.log("path: ", path)
     return apiUrl(path);
   };
 
@@ -721,15 +729,15 @@ export default async function OnJobSupportPage() {
               />
             </div>
             <div className="flex justify-center">
-              <div className="w-72 h-72 bg-[#DDE7F5] rounded-full flex items-center justify-center">
+              <div className="relative w-72 h-72 bg-[#DDE7F5] rounded-full flex items-center justify-center">
                 {hero.image && (
                   <Image
                     src={fixImageUrl(hero.image)}
                     alt=""
-                    width={200}
-                    height={200}
+                    fill
+                    className="object-contain p-8"
                     priority
-                    sizes="(max-width: 768px) 200px, 200px"
+                    sizes="(max-width: 768px) 288px, 288px"
                   />
                 )}
               </div>
@@ -741,14 +749,14 @@ export default async function OnJobSupportPage() {
         <section className="px-6 md:px-12 py-14 bg-white">
           <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
             <div className="flex justify-center">
-              <div className="w-70 h-70 rounded-full border-[12px] border-[#D9E4F5] flex items-center justify-center">
+              <div className="relative w-70 h-70 rounded-full border-[12px] border-[#D9E4F5] flex items-center justify-center">
                 {realtimeHelp.image && (
                   <Image
                     src={fixImageUrl(realtimeHelp.image)}
-                    width={230}
-                    height={140}
                     alt=""
-                    sizes="(max-width: 768px) 230px, 230px"
+                    fill
+                    className="object-contain p-6"
+                    sizes="(max-width: 768px) 280px, 280px"
                   />
                 )}
               </div>
@@ -867,9 +875,10 @@ export default async function OnJobSupportPage() {
               {whyChoose.image && (
                 <Image
                   src={fixImageUrl(whyChoose.image)}
+                  alt=""
                   width={280}
                   height={200}
-                  alt=""
+                  style={{ width: "auto", height: "auto" }}
                   sizes="(max-width: 768px) 280px, 280px"
                 />
               )}

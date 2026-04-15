@@ -28,6 +28,8 @@ import {
 } from "@/app/lib/api";
 import { buildCourseDetailSchema } from "@/app/components/schemas/course-schema";
 import { buildBreadcrumbSchema } from "@/app/components/schemas/breadcrumb-schema";
+import { buildFaqPageSchema } from "@/app/components/schemas/faq-schema";
+import { enforcePoppinsHtml } from "@/app/lib/html";
 import { Home } from "lucide-react";
 
 
@@ -41,7 +43,7 @@ const cyan = "#00aeef";
 const gold = "#ffcc00";
 
 type PageProps = {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string; id: string }>;
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -111,6 +113,20 @@ function slugifyCategory(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function categorySlugOf(course: CourseApi, fallback = ""): string {
+  if (typeof course.category === "object" && course.category !== null) {
+    const c = course.category as { slug?: string; name?: string };
+    const fromSlug = (c.slug ?? "").trim();
+    if (fromSlug) return fromSlug;
+    const fromName = (c.name ?? "").trim();
+    if (fromName) return slugifyCategory(fromName);
+  }
+  if (typeof course.category_name === "string" && course.category_name.trim()) {
+    return slugifyCategory(course.category_name);
+  }
+  return fallback;
+}
+
 
 
 function SectionTitle({ children }: { children: ReactNode }) {
@@ -122,7 +138,7 @@ function SectionTitle({ children }: { children: ReactNode }) {
 }
 
 export default async function CourseDetailPage({ params }: PageProps) {
-  const { id } = await params;
+  const { id, slug: routeCategorySlug } = await params;
   const slug = id;
 
   const courseId = await fetchCourseIdBySlug(slug);
@@ -194,7 +210,12 @@ export default async function CourseDetailPage({ params }: PageProps) {
     .filter((post) => normalizeCategoryKey(post.category ?? "") === categoryKey)
     .slice(0, 6);
 
-  const courseHref = (c: CourseApi) => `/courses/${categorySlug}/${c.slug}`;
+  const currentCategorySlug =
+    (categorySlug || routeCategorySlug || slugifyCategory(categoryLabel ?? "")).trim();
+  const courseHref = (c: CourseApi) => {
+    const relatedCategorySlug = categorySlugOf(c, currentCategorySlug);
+    return `/courses/${relatedCategorySlug}/${c.slug}`;
+  };
 
   const cardBase =
     "bg-white rounded-2xl border border-sky-100/80 shadow-lg shadow-[#0a2540]/[0.06]";
@@ -217,6 +238,8 @@ export default async function CourseDetailPage({ params }: PageProps) {
     corporateTrainingSections?.[0]?.heading?.trim() ||
     sectionMeta?.corporate_training_heading?.trim() ||
     "Corporate Training";
+  const aboutHtml = enforcePoppinsHtml(aboutText);
+  const placementSupportHtml = enforcePoppinsHtml(placementSupportText);
 
   const skillsHeading = sectionMeta?.skills_heading?.trim() || "Skills You’ll Learn";
   const toolsHeading = sectionMeta?.tools_heading?.trim() || "Tools & Technologies";
@@ -236,6 +259,17 @@ export default async function CourseDetailPage({ params }: PageProps) {
       : []),
     { name: course.title, url: `/courses/${categorySlug}/${course.slug}` },
   ]);
+  const faqSchema = faqs.length
+    ? buildFaqPageSchema(
+        faqs
+          .filter((f) => f.question?.trim() && f.answer?.trim())
+          .map((f) => ({ question: f.question, answer: f.answer })),
+        {
+          name: faqsHeading,
+          url: `/courses/${currentCategorySlug}/${course.slug}`,
+        },
+      )
+    : null;
 
 const handleSubmit=async()=>{
 
@@ -257,6 +291,14 @@ const handleSubmit=async()=>{
           __html: JSON.stringify(courseSchema).replace(/<\/script/gi, "<\\/script"),
         }}
       />
+      {faqSchema ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(faqSchema).replace(/<\/script/gi, "<\\/script"),
+          }}
+        />
+      ) : null}
       <main className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/40 to-white text-slate-800 pt-16">
       <section className="px-6 md:px-12 py-4 border-b border-sky-100/80 bg-white/70">
         <div className="max-w-7xl mx-auto text-xs md:text-sm text-slate-500 flex flex-wrap items-center gap-1.5">
@@ -395,12 +437,20 @@ const handleSubmit=async()=>{
                 className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#00aeef] focus:border-transparent"
               />
 
-              <input
-                type="text"
-                value={course.title}
-                readOnly
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-sky-50/80 text-slate-700"
-              />
+              <select
+                name="course"
+                defaultValue={String(course.id)}
+                aria-label="Select course"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-sky-50/80 text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00aeef] focus:border-transparent"
+              >
+                {[...allCourses]
+                  .sort((a, b) => a.title.localeCompare(b.title))
+                  .map((item) => (
+                    <option key={item.id} value={String(item.id)}>
+                      {item.title}
+                    </option>
+                  ))}
+              </select>
 
               <button
               
@@ -425,7 +475,7 @@ const handleSubmit=async()=>{
           <SectionTitle>{aboutHeading}</SectionTitle>
           <div
             className="text-slate-600 mt-4 leading-relaxed prose max-w-none"
-            dangerouslySetInnerHTML={{ __html: aboutText }}
+            dangerouslySetInnerHTML={{ __html: aboutHtml }}
           />
         </div>
 
@@ -492,7 +542,7 @@ const handleSubmit=async()=>{
                   </summary>
                   <div
                     className="mt-3 text-slate-600 text-sm leading-relaxed border-t border-sky-100 pt-3 prose max-w-none"
-                    dangerouslySetInnerHTML={{ __html: item.content || "" }}
+                    dangerouslySetInnerHTML={{ __html: enforcePoppinsHtml(item.content || "") }}
                   />
                 </details>
               ))}
@@ -552,7 +602,7 @@ const handleSubmit=async()=>{
             <SectionTitle>{placementSupportHeading}</SectionTitle>
             <div
               className="mt-4 text-sm text-slate-600 max-w-2xl leading-relaxed prose max-w-none"
-              dangerouslySetInnerHTML={{ __html: placementSupportText }}
+              dangerouslySetInnerHTML={{ __html: placementSupportHtml }}
             />
           </div>
         ) : (

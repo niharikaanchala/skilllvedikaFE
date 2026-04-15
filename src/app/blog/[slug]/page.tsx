@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { fetchBlogs, fetchCourses } from "@/app/lib/api";
 import { blogArticleMeta, formatBlogDate } from "@/app/lib/blog-utils";
+import { enforcePoppinsHtml } from "@/app/lib/html";
 import { buildBlogDetailSchema } from "@/app/components/schemas/blog-schema";
 import { buildBreadcrumbSchema } from "@/app/components/schemas/breadcrumb-schema";
 import { Home } from "lucide-react";
@@ -119,7 +120,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
     { name: "Blog", url: "/blog" },
     { name: post.title, url: `/blog/${post.slug}` },
   ]);
-  const htmlContent = post.paragraphs?.map((p) => p.content).join("") ?? "";
+  const htmlContent = enforcePoppinsHtml(post.paragraphs?.map((p) => p.content).join("") ?? "");
   const relatedCourses = courses.slice(0, 2);
   // const recommended = allBlogs
   // .filter(
