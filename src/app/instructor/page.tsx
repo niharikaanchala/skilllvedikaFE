@@ -5,7 +5,7 @@ import { apiUrl, fetchCourses } from "@/app/lib/api";
 async function fetchInstructorPageData(): Promise<InstructorPageData | null> {
   try {
     const res = await fetch(apiUrl("/api/instructor/instructor-page/"), {
-      cache: "no-store",
+      next: { revalidate: 300 },
     });
     if (!res.ok) return null;
     const json = (await res.json()) as unknown;

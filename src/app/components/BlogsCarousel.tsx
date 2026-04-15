@@ -13,19 +13,14 @@ export default function BlogsCarousel({
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
-  
+
     const container = scrollRef.current;
-  
-    // get FIRST CARD WRAPPER (important fix)
-    const card = container.children[0] as HTMLElement;
-  
-    if (!card) return;
-  
-    const gap = 24; // matches gap-6
-    const cardWidth = card.offsetWidth + gap;
-  
+
+    // Avoid per-click card measurement to reduce forced reflow.
+    const scrollAmount = Math.max(container.clientWidth * 0.85, 280);
+
     container.scrollBy({
-      left: dir === "left" ? -cardWidth : cardWidth,
+      left: dir === "left" ? -scrollAmount : scrollAmount,
       behavior: "smooth",
     });
   };
@@ -64,6 +59,10 @@ export default function BlogsCarousel({
                 <img
                   src={blog.image_url}
                   alt={blog.title}
+                  loading="lazy"
+                  decoding="async"
+                  width={320}
+                  height={144}
                   className="h-36 w-full object-cover border-b"
                 />
               ) : (

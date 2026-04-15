@@ -24,6 +24,9 @@ type CourseOption = {
   title: string;
 };
 
+let courseOptionsCache: CourseOption[] | null = null;
+let courseOptionsPromise: Promise<CourseOption[]> | null = null;
+
 const initialForm: LeadForm = {
   full_name: "",
   email: "",
@@ -31,6 +34,40 @@ const initialForm: LeadForm = {
   selected_course: "",
   agreed_to_terms: false,
 };
+
+async function fetchCourseOptions(): Promise<CourseOption[]> {
+  if (courseOptionsCache) return courseOptionsCache;
+  if (courseOptionsPromise) return courseOptionsPromise;
+
+  courseOptionsPromise = fetch(apiUrl("/api/courses/"), { cache: "force-cache" })
+    .then(async (res) => {
+      if (!res.ok) return [] as CourseOption[];
+      const data = await res.json();
+      if (!Array.isArray(data)) return [] as CourseOption[];
+      return data
+        .map((item: Record<string, unknown>) => {
+          const title =
+            typeof item.title === "string"
+              ? item.title
+              : typeof item.name === "string"
+                ? item.name
+                : "";
+          const id =
+            typeof item.id === "number" || typeof item.id === "string"
+              ? item.id
+              : title;
+          return { id, title };
+        })
+        .filter((item: CourseOption) => item.title.trim().length > 0);
+    })
+    .catch(() => [] as CourseOption[])
+    .finally(() => {
+      courseOptionsPromise = null;
+    });
+
+  courseOptionsCache = await courseOptionsPromise;
+  return courseOptionsCache;
+}
 
 export default function CounsellingModal({
   courseId,
@@ -59,29 +96,17 @@ export default function CounsellingModal({
   }, [open]);
 
   useEffect(() => {
+    if (!open) return;
     let mounted = true;
     async function loadCourses() {
+      if (courseOptionsCache) {
+        setCourseOptions(courseOptionsCache);
+        return;
+      }
       setCoursesLoading(true);
       try {
-        const res = await fetch(apiUrl("/api/courses/"), { cache: "no-store" });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!mounted || !Array.isArray(data)) return;
-        const options = data
-          .map((item: Record<string, unknown>) => {
-            const title =
-              typeof item.title === "string"
-                ? item.title
-                : typeof item.name === "string"
-                ? item.name
-                : "";
-            const id =
-              typeof item.id === "number" || typeof item.id === "string"
-                ? item.id
-                : title;
-            return { id, title };
-          })
-          .filter((item: CourseOption) => item.title.trim().length > 0);
+        const options = await fetchCourseOptions();
+        if (!mounted) return;
         setCourseOptions(options);
       } catch {
         // If API is down or proxy not configured, avoid unhandled rejection.
@@ -94,7 +119,7 @@ export default function CounsellingModal({
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [open]);
 
   const onChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,

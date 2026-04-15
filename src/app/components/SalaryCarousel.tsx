@@ -7,16 +7,8 @@ export default function SalaryCarousel({ salaries, cardBase, cyan }: any) {
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
-
-    const container = scrollRef.current;
-    const card = container.querySelector("div");
-
-    if (!card) return;
-
-    const cardWidth = (card as HTMLElement).offsetWidth + 16;
-
-    container.scrollBy({
-      left: dir === "left" ? -cardWidth : cardWidth,
+    scrollRef.current.scrollBy({
+      left: dir === "left" ? -256 : 256,
       behavior: "smooth",
     });
   };

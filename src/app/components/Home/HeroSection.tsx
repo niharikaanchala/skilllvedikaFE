@@ -1,6 +1,6 @@
 import type { HomeHeroApi } from "@/app/lib/home-page";
 import CounsellingModal from "@/app/course/[id]/CounsellingModal";
-import { fetchCategories, type CategoryApi } from "@/app/lib/api";
+import { fetchCategories, fetchCourses, type CategoryApi, type CourseApi } from "@/app/lib/api";
 import { redirect } from "next/navigation";
 
 type Props = {
@@ -36,6 +36,54 @@ function tagList(text: string | undefined): string[] {
     .filter(Boolean);
 }
 
+function slugifyCategory(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function courseHref(course: CourseApi): string {
+  const categorySlug =
+    typeof course.category === "object" && course.category !== null
+      ? (course.category.slug || "").trim()
+      : "";
+  const fallbackCategory =
+    course.category_name?.trim() ||
+    (typeof course.category === "object" && course.category !== null
+      ? course.category.name?.trim()
+      : "") ||
+    "course";
+
+  return `/courses/${categorySlug || slugifyCategory(fallbackCategory)}/${course.slug}`;
+}
+
+function courseCategoryFields(course: CourseApi): { name: string; slug: string } {
+  if (typeof course.category === "object" && course.category !== null) {
+    return {
+      name: (course.category.name || course.category_name || "").trim(),
+      slug: (course.category.slug || "").trim(),
+    };
+  }
+  return {
+    name: (course.category_name || "").trim(),
+    slug: "",
+  };
+}
+
+function normalizeSearchText(value: string): string {
+  return value.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function compactSearchKey(value: string): string {
+  return normalizeSearchText(value).replace(/[^a-z0-9]/g, "");
+}
+
+function searchPathSegment(value: string): string {
+  return encodeURIComponent(normalizeSearchText(value).replace(/\s+/g, "-"));
+}
+
 /**
  * Home hero: only fields returned by the API (Django). No fallback marketing copy.
  */
@@ -43,10 +91,40 @@ export default async function HeroSection({ data }: Props) {
   async function handleHeroSearch(formData: FormData) {
     "use server";
     const rawQuery = String(formData.get("q") ?? "").trim();
-    const categorySlug = String(formData.get("category") ?? "").trim();
-    const query = rawQuery ? `?q=${encodeURIComponent(rawQuery)}` : "";
-    const target = categorySlug ? `/courses/${categorySlug}${query}` : `/courses${query}`;
-    redirect(target);
+    if (!rawQuery) {
+      redirect("/courses");
+    }
+
+    const [courses, categories] = await Promise.all([
+      fetchCourses().catch(() => [] as CourseApi[]),
+      fetchCategories().catch(() => [] as CategoryApi[]),
+    ]);
+    const normalizedQ = normalizeSearchText(rawQuery);
+    const compactQ = compactSearchKey(rawQuery);
+
+    const exactMatch = courses.find((course) => {
+      return (
+        compactSearchKey(course.title || "") === compactQ ||
+        compactSearchKey(course.slug || "") === compactQ
+      );
+    });
+
+    if (exactMatch) {
+      redirect(courseHref(exactMatch));
+    }
+
+    const exactCategoryMatch = categories.find((category) => {
+      return (
+        compactSearchKey(category.name || "") === compactQ ||
+        compactSearchKey(category.slug || "") === compactQ
+      );
+    });
+
+    if (exactCategoryMatch?.slug?.trim()) {
+      redirect(`/courses/${exactCategoryMatch.slug.trim()}`);
+    }
+
+    redirect(`/courses/search/${searchPathSegment(rawQuery)}`);
   }
 
   if (!data?.heading?.trim()) {
@@ -66,6 +144,11 @@ export default async function HeroSection({ data }: Props) {
   const showRightCard = Boolean(cardTitle || cardSubtitle);
   const showRightVisual = Boolean(data.image) || showRightCard;
   const categoriesPromise = fetchCategories().catch(() => [] as CategoryApi[]);
+  const categories = await categoriesPromise;
+  const movingTags = categories.length > 0
+    ? categories.map((category) => category.name)
+    : tags;
+  const marqueeTags = movingTags.length > 0 ? [...movingTags, ...movingTags] : [];
 
   return (
     <section className="border-b border-slate-200/60 bg-[#eaf0f7] pt-12 md:pt-16">
@@ -82,29 +165,16 @@ export default async function HeroSection({ data }: Props) {
         </h1>
         {subheading ? <p className="mt-4 text-sm text-slate-600 sm:text-[15px] md:text-base">{subheading}</p> : null}
 
-        {highlights.length > 0 ? (
+        {/* {highlights.length > 0 ? (
           <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-slate-500">
             {highlights.map((line) => (
               <span key={line}>{line}</span>
             ))}
           </div>
-        ) : null}
+        ) : null} */}
 
         {searchPh ? (
           <form action={handleHeroSearch} className="mt-6 flex w-full max-w-xl flex-col overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm sm:flex-row">
-            <select
-              name="category"
-              className="w-full border-0 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 outline-none sm:max-w-[42%] sm:border-b-0 sm:border-r"
-              defaultValue=""
-              aria-label="Select category"
-            >
-              <option value="">All categories</option>
-              {(await categoriesPromise).map((category) => (
-                <option key={category.id} value={category.slug}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
             <input
               type="search"
               name="q"
@@ -130,16 +200,18 @@ export default async function HeroSection({ data }: Props) {
           </form>
         ) : null}
 
-        {tags.length > 0 ? (
-          <div className="mt-4 flex flex-wrap gap-2 text-xs">
-            {tags.map((item) => (
-              <span
-                key={item}
-                className="cursor-default rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600"
-              >
-                {item}
-              </span>
-            ))}
+        {marqueeTags.length > 0 ? (
+          <div className="hero-categories mt-4">
+            <div className="hero-categories-track text-xs">
+              {marqueeTags.map((item, index) => (
+                <span
+                  key={`${item}-${index}`}
+                  className="cursor-default rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
         ) : null}
 

@@ -5,7 +5,7 @@ import { apiUrl } from "@/app/lib/api";
 async function fetchContactPageData(): Promise<ContactPageData | null> {
   try {
     const res = await fetch(apiUrl("/api/contact/contact-page/"), {
-      cache: "no-store",
+      next: { revalidate: 300 },
     });
     if (!res.ok) return null;
     const json = (await res.json()) as unknown;

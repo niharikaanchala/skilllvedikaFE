@@ -1,0 +1,32 @@
+import type { Metadata } from "next";
+import { fetchLegalPage } from "@/app/lib/api";
+import LegalDocumentLayout from "@/app/components/legal/LegalDocumentLayout";
+
+async function getDisclaimerPage() {
+  return fetchLegalPage("disclaimer");
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getDisclaimerPage();
+  const title = page?.seo_meta_title?.trim() || page?.title?.trim() || "Disclaimer";
+  const description = page?.seo_meta_description?.trim() || "Read SkillVedika disclaimer.";
+  const keywords = (page?.seo_meta_keywords ?? "")
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean);
+
+  return {
+    title,
+    description,
+    keywords: keywords.length ? keywords : undefined,
+    alternates: { canonical: "https://skillvedika.com/disclaimer" },
+  };
+}
+
+export default async function DisclaimerPage() {
+  const page = await getDisclaimerPage();
+  const title = page?.title?.trim() || "Disclaimer";
+  const content = page?.content?.trim() || "Disclaimer content will be available soon.";
+
+  return <LegalDocumentLayout title={title} content={content} />;
+}

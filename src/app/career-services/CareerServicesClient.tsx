@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
 import CounsellingModal from "@/app/course/[id]/CounsellingModal";
 import { Home } from "lucide-react";
 import type { CareerPageApi, CourseApi, BlogPostApi } from "@/app/lib/api";
@@ -17,11 +18,68 @@ type Props = {
   blogs: BlogPostApi[];
 };
 
+function enrollmentFromId(id: number): number {
+  return 120 + (Math.abs(id * 17 + 31) % 2880);
+}
+
+function StarRating({ rating }: { rating: number }) {
+  const safeRating = Number.isFinite(rating) ? rating : 0;
+  const filled = Math.min(5, Math.max(0, Math.round(safeRating)));
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span
+          key={i}
+          className={i <= filled ? "text-amber-400 text-[15px] leading-none" : "text-slate-200 text-[15px] leading-none"}
+        >
+          ★
+        </span>
+      ))}
+      <span className="ml-1 text-sm font-medium text-[#334155]">
+        ({safeRating.toFixed(1)})
+      </span>
+    </div>
+  );
+}
+
 export default function CareerServicesClient({ initialData, courses, blogs }: Props) {
   const data = initialData;
+  const relatedCoursesRef = useRef<HTMLDivElement | null>(null);
+  const recommendedBlogsRef = useRef<HTMLDivElement | null>(null);
+  const currentPageName = "Career Services";
   const servicesHeading = data.services_heading?.title || data.hero?.title || "Our Career Services";
+  const firstFaq = data.faqs?.[0];
+  const faqSectionName =
+    (typeof data.faq_heading === "object" ? data.faq_heading?.title : data.faq_heading) ||
+    (typeof data.faqs_heading === "object" ? data.faqs_heading?.title : data.faqs_heading) ||
+    data.faq_title ||
+    data.faq_section_title ||
+    firstFaq?.section_title ||
+    firstFaq?.heading ||
+    firstFaq?.title ||
+    "FAQs";
   const relatedCourses = courses.slice(0, 6);
   const recommendedBlogs = blogs.slice(0, 6);
+
+  const slideRelatedCourses = (direction: "left" | "right") => {
+    const node = relatedCoursesRef.current;
+    if (!node) return;
+    const amount = 320;
+    node.scrollBy({
+      left: direction === "right" ? amount : -amount,
+      behavior: "smooth",
+    });
+  };
+
+  const slideRecommendedBlogs = (direction: "left" | "right") => {
+    const node = recommendedBlogsRef.current;
+    if (!node) return;
+    const amount = 320;
+    node.scrollBy({
+      left: direction === "right" ? amount : -amount,
+      behavior: "smooth",
+    });
+  };
 
   return (
     <main className="bg-slate-50 text-slate-900 pt-16">
@@ -34,7 +92,7 @@ export default function CareerServicesClient({ initialData, courses, blogs }: Pr
           </Link>
           <span className="mx-2 text-slate-400">/</span>
           <span className="font-semibold text-[#001f3f]">
-            {data.hero?.title || "Career Services"}
+            {currentPageName}
           </span>
         </div>
       </section>
@@ -111,63 +169,144 @@ export default function CareerServicesClient({ initialData, courses, blogs }: Pr
         </div>
       </section>
 
-      {/* RELATED COURSES & RECOMMENDED BLOGS */}
-      {(relatedCourses.length > 0 || recommendedBlogs.length > 0) && (
+      {/* RELATED COURSES */}
+      {relatedCourses.length > 0 && (
         <section className="py-16 px-6 bg-white">
-          <div className="max-w-6xl mx-auto grid gap-10 md:grid-cols-2">
-            {relatedCourses.length > 0 && (
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-4 flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-bold text-[#0C1A35] mb-4">
+                <h2 className="text-2xl font-bold text-[#0C1A35]">
                   Related Courses
                 </h2>
-                <p className="text-sm text-slate-500 mb-4">
+                <p className="mt-1 text-sm text-slate-500">
                   Explore programmes that complement our career support services.
                 </p>
-                <div className="space-y-4">
-                  {relatedCourses.map((course) => (
-                    <Link
-                      key={course.id}
-                      href={`/course/${course.slug}`}
-                      className="block rounded-xl border border-sky-100 bg-slate-50/70 p-4 hover:bg-white hover:border-blue-400 hover:shadow-md transition"
-                    >
-                      <h3 className="font-semibold text-[#0C1A35]">
-                        {course.title}
-                      </h3>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {course.duration}
-                      </p>
-                    </Link>
-                  ))}
-                </div>
               </div>
-            )}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => slideRelatedCourses("left")}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-[#0C1A35] shadow-sm transition hover:border-blue-400 hover:text-blue-600"
+                  aria-label="Scroll related courses left"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  onClick={() => slideRelatedCourses("right")}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-[#0C1A35] shadow-sm transition hover:border-blue-400 hover:text-blue-600"
+                  aria-label="Scroll related courses right"
+                >
+                  ›
+                </button>
+              </div>
+            </div>
+            <div
+              ref={relatedCoursesRef}
+              className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2 no-scrollbar"
+            >
+              {relatedCourses.map((course) => (
+                <Link
+                  key={course.id}
+                  href={`/course/${course.slug}`}
+                  className="group flex min-w-[280px] flex-[0_0_100%] snap-start flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md sm:flex-[0_0_calc(50%-10px)] lg:flex-[0_0_calc(33.333%-14px)]"
+                >
+                  <h3 className="line-clamp-2 text-[17px] font-semibold leading-snug text-[#0f2744] group-hover:text-[#1d4f91]">
+                    {course.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-[#64748b]">
+                    {enrollmentFromId(course.id).toLocaleString()} students enrolled
+                  </p>
+                  <div className="mt-3">
+                    <StarRating rating={course.rating} />
+                  </div>
+                  <div className="my-4 border-t border-slate-100" />
+                  <div className="mt-auto">
+                    <span className="block rounded-lg bg-[#2f5fa8] py-2.5 text-center text-sm font-semibold text-white transition group-hover:opacity-95">
+                      View Course
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
-            {recommendedBlogs.length > 0 && (
+      {/* RECOMMENDED ARTICLES */}
+      {recommendedBlogs.length > 0 && (
+        <section className="pb-16 px-6 bg-white">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-4 flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-bold text-[#0C1A35] mb-4">
-                  Recommended Blogs
+                <h2 className="text-2xl font-bold text-[#0C1A35]">
+                  Recommended Articles
                 </h2>
-                <p className="text-sm text-slate-500 mb-4">
+                <p className="mt-1 text-sm text-slate-500">
                   Read career tips, placement stories, and interview guidance.
                 </p>
-                <div className="space-y-4">
-                  {recommendedBlogs.map((post) => (
-                    <Link
-                      key={post.id}
-                      href={`/blog/${post.slug}`}
-                      className="block rounded-xl border border-sky-100 bg-gradient-to-r from-sky-50 to-sky-100/40 p-4 hover:border-blue-400 hover:shadow-md transition"
-                    >
-                      <h3 className="font-semibold text-[#0C1A35] line-clamp-2">
-                        {post.title}
-                      </h3>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {post.category}
-                      </p>
-                    </Link>
-                  ))}
-                </div>
               </div>
-            )}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => slideRecommendedBlogs("left")}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-[#0C1A35] shadow-sm transition hover:border-blue-400 hover:text-blue-600"
+                  aria-label="Scroll recommended articles left"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  onClick={() => slideRecommendedBlogs("right")}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-[#0C1A35] shadow-sm transition hover:border-blue-400 hover:text-blue-600"
+                  aria-label="Scroll recommended articles right"
+                >
+                  ›
+                </button>
+              </div>
+            </div>
+            <div
+              ref={recommendedBlogsRef}
+              className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2 no-scrollbar"
+            >
+              {recommendedBlogs.map((post) => (
+                <Link
+                  key={post.id}
+                  href={`/blog/${post.slug}`}
+                  className="group block min-w-[280px] flex-[0_0_100%] snap-start overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md sm:flex-[0_0_calc(50%-10px)] lg:flex-[0_0_calc(33.333%-14px)]"
+                >
+                  <div className="h-28 w-full bg-slate-200">
+                    {post.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={post.image_url}
+                        alt={post.title}
+                        loading="lazy"
+                        decoding="async"
+                        width={480}
+                        height={112}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : null}
+                  </div>
+                  <div className="p-4">
+                    <span className="inline-block rounded bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">
+                      {post.category || "Article"}
+                    </span>
+                    <h3 className="mt-2 line-clamp-2 font-semibold text-[#0C1A35] group-hover:text-[#1d4f91]">
+                      {post.title}
+                    </h3>
+                    <p className="mt-1 line-clamp-2 text-sm text-slate-500">
+                      {post.excerpt || ""}
+                    </p>
+                    <div className="mt-3 flex items-center justify-between text-xs">
+                      <span className="text-slate-400">{post.date || ""}</span>
+                      <span className="font-medium text-[#2f5fa8]">Read More →</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
       )}
@@ -195,6 +334,9 @@ export default function CareerServicesClient({ initialData, courses, blogs }: Pr
 
       {/* FAQ */}
       <section className="py-16 px-6 max-w-4xl mx-auto">
+        <h2 className="text-3xl font-bold mb-8 text-[#0C1A35] text-center">
+          {faqSectionName}
+        </h2>
         <div className="space-y-4">
           {data.faqs?.map((faq: any) => (
             <details

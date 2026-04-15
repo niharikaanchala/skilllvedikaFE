@@ -36,6 +36,10 @@ export default async function BlogSection() {
                 <img
                   src={blog.image_url}
                   alt={blog.title}
+                  loading="lazy"
+                  decoding="async"
+                  width={480}
+                  height={160}
                   className="h-40 w-full object-cover"
                 />
               ) : (

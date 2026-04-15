@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import HeroSection from "./components/Home/HeroSection";
 import CoursesSection from "./components/Home/CoursesSection";
 import FeaturesSection from "./components/Home/FeaturesSection";
@@ -8,6 +9,8 @@ import BlogSection from "./components/Home/BlogSection";
 import FaqSection from "./components/Home/FaqSection";
 import WhyChooseSection from "./components/Home/WhyChooseSection";
 import { fetchHomePageBundle, resolveHomeContent } from "./lib/home-page";
+import { buildFaqPageSchema } from "./components/schemas/faq-schema";
+import { buildHomePageSchema } from "./components/schemas/site-schema";
 
 export async function generateMetadata(): Promise<Metadata> {
   const bundle = await fetchHomePageBundle();
@@ -44,37 +47,78 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Home() {
   const bundle = await fetchHomePageBundle();
   const c = resolveHomeContent(bundle);
+  const hero = c.hero;
+  const pageSchema = buildHomePageSchema({
+    title: hero?.meta_title || hero?.heading || "SkillVedika",
+    description: hero?.meta_description || hero?.subheading || "",
+    image: hero?.image || "",
+  });
+  const faqSchema =
+    c.faqItems.length > 0
+      ? buildFaqPageSchema(c.faqItems, {
+          url: "/",
+          name: c.faqHeading || "Frequently Asked Questions",
+        })
+      : null;
 
   return (
     <main>
-      <HeroSection data={c.hero} />
-      <CoursesSection />
-      <WhyChooseSection
-        heading={c.whyHeading}
-        intro={c.whyIntro}
-        items={c.whyItems}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(pageSchema).replace(/<\/script/gi, "<\\/script"),
+        }}
       />
-      <FeaturesSection
-        heading={c.featuresHeading}
-        intro={c.featuresIntro}
-        items={c.featureItems}
-      />
-      <JobProgram heading={c.jobHeading} intro={c.jobIntro} items={c.jobItems} />
-      <BlogSection />
-      {c.support ? (
-        <SupportSection
-          heading={c.support.heading}
-          intro={c.support.intro}
-          tabs={c.support.tabs}
-          ctaText={c.support.ctaText}
-          ctaLink={c.support.ctaLink}
+      {faqSchema ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(faqSchema).replace(/<\/script/gi, "<\\/script"),
+          }}
         />
       ) : null}
-      <FaqSection
-        heading={c.faqHeading}
-        intro={c.faqIntro}
-        items={c.faqItems}
-      />
+      <HeroSection data={c.hero} />
+      <Suspense fallback={<section className="bg-white px-6 py-12 md:px-12 md:py-14" />}>
+        <CoursesSection />
+      </Suspense>
+      <Suspense fallback={<section className="bg-white px-6 py-12 md:px-12 md:py-14" />}>
+        <WhyChooseSection
+          heading={c.whyHeading}
+          intro={c.whyIntro}
+          items={c.whyItems}
+        />
+      </Suspense>
+      <Suspense fallback={<section className="bg-[#EEF3F8] px-6 py-12 md:px-12 md:py-14" />}>
+        <FeaturesSection
+          heading={c.featuresHeading}
+          intro={c.featuresIntro}
+          items={c.featureItems}
+        />
+      </Suspense>
+      <Suspense fallback={<section className="bg-white px-6 py-12 md:px-12 md:py-14" />}>
+        <JobProgram heading={c.jobHeading} intro={c.jobIntro} items={c.jobItems} />
+      </Suspense>
+      <Suspense fallback={<section className="bg-[#EEF3F8] px-6 py-12 md:px-12 md:py-14" />}>
+        <BlogSection />
+      </Suspense>
+      <Suspense fallback={<section className="bg-white px-6 py-12 md:px-12 md:py-14" />}>
+        {c.support ? (
+          <SupportSection
+            heading={c.support.heading}
+            intro={c.support.intro}
+            tabs={c.support.tabs}
+            ctaText={c.support.ctaText}
+            ctaLink={c.support.ctaLink}
+          />
+        ) : null}
+      </Suspense>
+      <Suspense fallback={<section className="bg-white px-6 py-12 md:px-12 md:py-14" />}>
+        <FaqSection
+          heading={c.faqHeading}
+          intro={c.faqIntro}
+          items={c.faqItems}
+        />
+      </Suspense>
     </main>
   );
 }

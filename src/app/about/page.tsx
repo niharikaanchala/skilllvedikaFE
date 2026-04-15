@@ -402,9 +402,8 @@ import { apiUrl } from "../lib/api";
 async function getAboutData() {
   try {
     const res = await fetch(apiUrl("/api/about/"), {
-      cache: "no-store",
+      next: { revalidate: 300 },
     });
-    console.log(res);
     if (!res.ok) return null;
 
     return res.json();
@@ -416,7 +415,7 @@ async function getAboutData() {
 async function getCourses() {
   try {
     const res = await fetch(apiUrl("/api/courses/"), {
-      cache: "no-store",
+      next: { revalidate: 300 },
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -457,8 +456,6 @@ export async function generateMetadata() {
 /* ✅ SSR PAGE */
 export default async function Page() {
  const [data, coursesData] = await Promise.all([getAboutData(), getCourses()]);
-
-  console.log(data)
 
   return <AboutClient initialData={data} courses={coursesData} />;
 }

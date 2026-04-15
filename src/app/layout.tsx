@@ -4,12 +4,14 @@ import Footer from "./components/layout/Footer";
 import { SiteBrandingProvider } from "./components/layout/SiteBrandingProvider";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
+import Script from "next/script";
 import { fetchSiteSettings } from "./lib/api";
+import { buildOrganizationSchema, buildWebsiteSchema } from "./components/schemas/site-schema";
 
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -29,17 +31,33 @@ export default async function RootLayout({
       .map((s) => String(s.google_analytics_id ?? "").trim())
       .find((id) => id.length > 0) ?? "";
   const hasGaId = Boolean(gaId);
+  const organizationSchema = buildOrganizationSchema();
+  const websiteSchema = buildWebsiteSchema();
 
   return (
     <html lang="en" className={`${poppins.variable} ${poppins.className}`}>
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema).replace(/<\/script/gi, "<\\/script"),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(websiteSchema).replace(/<\/script/gi, "<\\/script"),
+          }}
+        />
         {hasGaId ? (
           <>
-            <script
-              async
+            <Script
+              strategy="lazyOnload"
               src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`}
             />
-            <script
+            <Script
+              id="google-analytics"
+              strategy="lazyOnload"
               dangerouslySetInnerHTML={{
                 __html: `
                   window.dataLayer = window.dataLayer || [];

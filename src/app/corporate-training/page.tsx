@@ -316,7 +316,7 @@ import { apiUrl } from "../lib/api";
 export const generateMetadata = async (): Promise<Metadata> => {
   try {
     const res = await fetch(apiUrl("/api/corporate-training/"), {
-      cache: "no-store",
+      next: { revalidate: 300 },
     });
     const data = await res.json();
 
@@ -355,10 +355,10 @@ export default async function Page() {
 
   const [coursesRes, res] = await Promise.all([
     fetch(apiUrl("/api/courses/"), {
-      cache: "no-store",
+      next: { revalidate: 300 },
     }),
     fetch(apiUrl("/api/corporate-training/"), {
-      cache: "no-store",
+      next: { revalidate: 300 },
     }),
   ]);
   const coursesData = await coursesRes.json();

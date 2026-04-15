@@ -81,7 +81,7 @@ function emptyResolved(): ResolvedHomeContent {
 /** Fetch the homepage bundle from API */
 export async function fetchHomePageBundle(): Promise<HomePageBundleApi | null> {
   try {
-    const res = await fetch(apiUrl("/api/home/bundle/"), { cache: "no-store" });
+    const res = await fetch(apiUrl("/api/home/bundle/"), { next: { revalidate: 300 } });
     if (!res.ok) return null;
     return (await res.json()) as HomePageBundleApi;
   } catch {

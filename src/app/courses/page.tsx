@@ -144,12 +144,77 @@ export default async function CoursesPage({
   const sortedCourses = filteredCourses
     ?.slice()
     .sort((a: CourseApi, b: CourseApi) => b.rating - a.rating);
+  const isSearchView = Boolean(q || category);
   const courseListSchema = buildCourseListSchema(filteredCourses);
   const categoryListSchema = buildCategoryListSchema(categories);
   const breadcrumbSchema = buildBreadcrumbSchema([
     { name: "Home", url: "/" },
     { name: "Courses", url: "/courses" },
   ]);
+
+  if (isSearchView) {
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(courseListSchema).replace(/<\/script/gi, "<\\/script"),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(categoryListSchema).replace(/<\/script/gi, "<\\/script"),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(breadcrumbSchema).replace(/<\/script/gi, "<\\/script"),
+          }}
+        />
+        <main className="min-h-screen bg-gradient-to-b from-[#eaf0f7] via-white to-[#f4f8fc] pt-16 text-slate-800">
+          <section className="border-b border-slate-200/70 bg-white/70 px-6 py-4 md:px-12">
+            <div className="max-w-6xl mx-auto text-xs md:text-sm text-slate-500 flex items-center">
+              <Home className="w-4 h-4 text-slate-500 mr-1" />
+              <Link href="/" className="transition-colors hover:text-[#2f5fa8]">
+                Home
+              </Link>
+              <span className="mx-2 text-slate-400">/</span>
+              <Link href="/courses" className="transition-colors hover:text-[#2f5fa8]">
+                Courses
+              </Link>
+              <span className="mx-2 text-slate-400">/</span>
+              <span className="font-semibold text-[#1a2d49]">Search</span>
+            </div>
+          </section>
+
+          <section className="bg-white px-6 py-12 md:px-12 md:py-14">
+            <div className="max-w-6xl mx-auto">
+              {sortedCourses?.length ? (
+                <>
+                  <div className="flex items-center gap-4 mb-8">
+                    <h2 className="shrink-0 text-base font-bold text-[#1a2d49]">
+                      Search Results
+                    </h2>
+                    <div className="h-1 flex-1 rounded-full bg-gradient-to-r from-[#2f5fa8] via-[#4a79bd] to-[#cbdcf1]" />
+                  </div>
+                  <CoursesCarousel courses={sortedCourses} />
+                </>
+              ) : (
+                <div className="text-center p-12 rounded-2xl border border-dashed border-sky-200 bg-sky-50/50">
+                  <p className="font-semibold text-[#1a2d49]">No results found</p>
+                  <p className="text-sm text-slate-600 mt-2">
+                    {`No course or category matched "${q || category}". Try a different search term.`}
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+        </main>
+      </>
+    );
+  }
 
   return (
     <>
@@ -274,9 +339,13 @@ export default async function CoursesPage({
             <CoursesCarousel courses={sortedCourses} />
           ) : (
             <div className="text-center p-12 rounded-2xl border border-dashed border-sky-200 bg-sky-50/50">
-              <p className="font-semibold text-[#1a2d49]">No courses found</p>
+              <p className="font-semibold text-[#1a2d49]">
+                {q || category ? "No results found" : "No courses found"}
+              </p>
               <p className="text-sm text-slate-600 mt-2">
-                Check back soon for new programmes.
+                {q || category
+                  ? `No course or category matched "${q || category}". Try a different search term.`
+                  : "Check back soon for new programmes."}
               </p>
             </div>
           )}

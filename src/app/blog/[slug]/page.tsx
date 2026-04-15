@@ -194,6 +194,11 @@ export default async function BlogDetailPage({ params }: PageProps) {
               <img
                 src={post.image_url}
                 alt={post.title}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                width={1200}
+                height={630}
                 className="mt-6 max-h-[380px] w-full rounded-xl border border-slate-200 object-cover"
               />
             ) : null}
@@ -239,6 +244,10 @@ export default async function BlogDetailPage({ params }: PageProps) {
                       <img
                         src={item.image_url}
                         alt={item.title}
+                        loading="lazy"
+                        decoding="async"
+                        width={320}
+                        height={80}
                         className="mb-2 h-20 w-full rounded-md object-cover"
                       />
                     ) : null}
@@ -309,6 +318,10 @@ export default async function BlogDetailPage({ params }: PageProps) {
                     <img
                       src={item.image_url}
                       alt={item.title}
+                      loading="lazy"
+                      decoding="async"
+                      width={480}
+                      height={144}
                       className="mb-3 h-36 w-full rounded-md object-cover"
                     />
                   ) : null}

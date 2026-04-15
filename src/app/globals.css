@@ -74,3 +74,25 @@ body {
 .blog-editor-content p {
   margin: 0.5rem 0;
 }
+
+.hero-categories {
+  width: 100%;
+  max-width: 32rem;
+  overflow: hidden;
+}
+
+.hero-categories-track {
+  display: inline-flex;
+  gap: 0.5rem;
+  min-width: max-content;
+  animation: hero-category-marquee 20s linear infinite;
+}
+
+@keyframes hero-category-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}

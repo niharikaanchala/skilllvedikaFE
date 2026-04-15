@@ -550,7 +550,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Home } from "lucide-react";
-import Head from "next/head";
+import type { Metadata } from "next";
 import OnJobSupportClient from "./OnJobSupportClient"; // CSR Component
 import { apiUrl } from "@/app/lib/api";
 import CounsellingModal from "@/app/course/[id]/CounsellingModal";
@@ -571,12 +571,39 @@ type SectionContentData = {
 
 // Fetch helper
 async function fetchJson(path: string) {
-  const res = await fetch(apiUrl(path), { cache: "no-store" });
+  const res = await fetch(apiUrl(path), { next: { revalidate: 300 } });
   if (!res.ok) {
     console.error("Failed to fetch", path);
     return [];
   }
   return res.json();
+}
+
+async function getOnJobMeta() {
+  const metaData = await fetchJson("/api/on-job-support/meta-tags/");
+  return Array.isArray(metaData) ? metaData[0] || {} : metaData || {};
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const meta = await getOnJobMeta();
+  const title = typeof meta?.meta_title === "string" && meta.meta_title.trim()
+    ? meta.meta_title.trim()
+    : "On Job Support";
+  const description =
+    typeof meta?.meta_description === "string" && meta.meta_description.trim()
+      ? meta.meta_description.trim()
+      : "Get real-time on job support from SkillVedika experts.";
+  const keywords = (typeof meta?.meta_keywords === "string" ? meta.meta_keywords : "")
+    .split(",")
+    .map((k: string) => k.trim())
+    .filter(Boolean);
+
+  return {
+    title,
+    description,
+    keywords: keywords.length ? keywords : undefined,
+    alternates: { canonical: "https://skillvedika.com/on-job-support" },
+  };
 }
 
 export default async function OnJobSupportPage() {
@@ -666,18 +693,6 @@ export default async function OnJobSupportPage() {
   };
 
   return (
-    <>
-      <Head>
-        {meta?.meta_title && <title>{meta.meta_title}</title>}
-        {meta?.meta_description && (
-          <meta name="description" content={meta.meta_description} />
-        )}
-        {meta?.meta_keywords && (
-          <meta name="keywords" content={meta.meta_keywords} />
-        )}
-        <link rel="canonical" href="https://skillvedika.com/on-job-support" />
-      </Head>
-
       <main className="bg-[#F5F7FB] text-[#0C1A35] pt-16">
 
         {/* Breadcrumb */}
@@ -708,7 +723,14 @@ export default async function OnJobSupportPage() {
             <div className="flex justify-center">
               <div className="w-72 h-72 bg-[#DDE7F5] rounded-full flex items-center justify-center">
                 {hero.image && (
-                  <Image unoptimized src={fixImageUrl(hero.image)} alt="" width={200} height={200} />
+                  <Image
+                    src={fixImageUrl(hero.image)}
+                    alt=""
+                    width={200}
+                    height={200}
+                    priority
+                    sizes="(max-width: 768px) 200px, 200px"
+                  />
                 )}
               </div>
             </div>
@@ -721,7 +743,13 @@ export default async function OnJobSupportPage() {
             <div className="flex justify-center">
               <div className="w-70 h-70 rounded-full border-[12px] border-[#D9E4F5] flex items-center justify-center">
                 {realtimeHelp.image && (
-                  <Image unoptimized src={fixImageUrl(realtimeHelp.image)} width={230} height={140} alt="" />
+                  <Image
+                    src={fixImageUrl(realtimeHelp.image)}
+                    width={230}
+                    height={140}
+                    alt=""
+                    sizes="(max-width: 768px) 230px, 230px"
+                  />
                 )}
               </div>
             </div>
@@ -837,7 +865,13 @@ export default async function OnJobSupportPage() {
             </div>
             <div className="flex justify-center">
               {whyChoose.image && (
-                <Image unoptimized src={fixImageUrl(whyChoose.image)} width={280} height={200} alt="" />
+                <Image
+                  src={fixImageUrl(whyChoose.image)}
+                  width={280}
+                  height={200}
+                  alt=""
+                  sizes="(max-width: 768px) 280px, 280px"
+                />
               )}
             </div>
           </div>
@@ -846,6 +880,5 @@ export default async function OnJobSupportPage() {
         {/* DEMO (CSR Component) */}
         <OnJobSupportClient demo={demo} courses={courses} features={features} />
       </main>
-    </>
   );
 }

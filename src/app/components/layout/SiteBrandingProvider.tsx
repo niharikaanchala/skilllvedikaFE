@@ -109,7 +109,7 @@ type SiteBrandingContextType = SiteBranding & {
   refreshBranding: () => Promise<void>;
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+let brandingCache: SiteBranding | null = null;
 
 const SiteBrandingContext = createContext<SiteBrandingContextType>({
   brand_name: undefined,
@@ -127,7 +127,7 @@ export function SiteBrandingProvider({
   const fetchBranding = async () => {
     try {
       const res = await fetch(apiUrl(`/api/home/branding/`), {
-        cache: "no-store",
+        cache: "force-cache",
       });
 
       if (!res.ok) {
@@ -136,10 +136,7 @@ export function SiteBrandingProvider({
       }
 
       const data = await res.json();
-
-      console.log("RAW branding API response:", data);
-
-      setBranding({
+      const normalizedBranding = {
         brand_name:
           typeof data.brand_name === "string"
             ? data.brand_name
@@ -148,14 +145,28 @@ export function SiteBrandingProvider({
           typeof data.logo === "string"
             ? data.logo
             : null,
-      });
+      };
+      brandingCache = normalizedBranding;
+      setBranding(normalizedBranding);
     } catch (err) {
       console.error("Branding fetch error:", err);
     }
   };
 
   useEffect(() => {
-    fetchBranding();
+    if (brandingCache) {
+      setBranding(brandingCache);
+      return;
+    }
+    const run = () => {
+      void fetchBranding();
+    };
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(run, { timeout: 1500 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const timer = globalThis.setTimeout(run, 500);
+    return () => globalThis.clearTimeout(timer);
   }, []);
 
   const refreshBranding = async () => {

@@ -8,7 +8,7 @@ import { Home } from "lucide-react";
 import { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const meta = await fetch(apiUrl("/api/blog/meta-tags/"), { cache: "no-store" });
+  const meta = await fetch(apiUrl("/api/blog/meta-tags/"), { next: { revalidate: 300 } });
   const data = await meta.json().catch(() => ({}));
   const metaData = data || {};
   return {
@@ -118,6 +118,10 @@ export default async function BlogPage() {
                     <img
                       src={article.image_url}
                       alt={article.title}
+                      loading="lazy"
+                      decoding="async"
+                      width={720}
+                      height={176}
                       className="h-44 w-full object-cover"
                     />
                   ) : null}

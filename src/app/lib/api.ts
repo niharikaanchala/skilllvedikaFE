@@ -39,7 +39,7 @@ export type SiteSettingApi = {
 
 export type LegalPageApi = {
   id?: number;
-  page_type?: "terms" | "privacy";
+  page_type?: "terms" | "privacy" | "disclaimer" | "editorial-policy";
   title?: string;
   content?: string;
   seo_meta_title?: string;
@@ -133,14 +133,14 @@ export type CourseSectionMetaApi = {
 };
 
 async function fetchJsonOptionalArray<T>(path: string): Promise<T[]> {
-  const res = await fetch(apiUrl(path), { cache: "no-store" });
+  const res = await fetch(apiUrl(path), { next: { revalidate: 300 } });
   if (!res.ok) return [];
   const data = await res.json();
   return Array.isArray(data) ? data : [];
 }
 
 export async function fetchCourseById(id: number): Promise<CourseApi | null> {
-  const res = await fetch(apiUrl(`/api/courses/${id}/`), { cache: "no-store" });
+  const res = await fetch(apiUrl(`/api/courses/${id}/`), { next: { revalidate: 300 } });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Failed to fetch course: ${res.status}`);
   return res.json();
@@ -150,7 +150,7 @@ export async function fetchCourseById(id: number): Promise<CourseApi | null> {
 export async function fetchCourseIdBySlug(slug: string): Promise<number | null> {
   const res = await fetch(
     apiUrl(`/api/course-details/course/${encodeURIComponent(slug)}/`),
-    { cache: "no-store" },
+    { next: { revalidate: 300 } },
   );
   if (!res.ok) return null;
   const data = (await res.json()) as { id?: number };
@@ -258,15 +258,14 @@ export async function fetchCourseSectionMeta(courseRef: number | string): Promis
     typeof courseRef === "string"
       ? `/api/course-details/course/${encodeURIComponent(courseRef)}/meta/`
       : `/api/course-details/courses/${courseRef}/meta/`;
-  const res = await fetch(apiUrl(path), { cache: "no-store" });
+  const res = await fetch(apiUrl(path), { next: { revalidate: 300 } });
   if (!res.ok) return null;
   return res.json();
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(apiUrl(path), {
-    // fresh data from Django
-    cache: "no-store",
+    next: { revalidate: 300 },
   });
 
   if (!res.ok) {
@@ -289,7 +288,7 @@ export async function fetchCoursesByCategory(
 ): Promise<CourseApi[]> {
   const res = await fetch(
     apiUrl(`/api/courses/category/${categoryId}/`),
-    { cache: "no-store" },
+    { next: { revalidate: 300 } },
   );
   if (res.status === 404) return [];
   if (!res.ok) {
@@ -377,7 +376,7 @@ export function fetchBlogs(): Promise<BlogPostApi[]> {
 
 export async function fetchBlogBySlug(slug: string): Promise<BlogPostApi | null> {
   const res = await fetch(apiUrl(`/api/blog/${encodeURIComponent(slug)}/`), {
-    cache: "no-store",
+    next: { revalidate: 300 },
   });
   if (res.status === 404) return null;
   if (!res.ok) {
@@ -390,7 +389,7 @@ export async function fetchCoursesPageContent(): Promise<CoursesPageContentApi |
   try {
     const res = await fetch(
       apiUrl("/api/courses/courses-page-content/"),
-      { cache: "no-store" },
+      { next: { revalidate: 300 } },
     );
     if (res.status === 404) return null;
     if (!res.ok) return null;
@@ -431,7 +430,7 @@ export async function fetchCoursesPageContent(): Promise<CoursesPageContentApi |
 export async function fetchCategoryPageContent(categoryId: number): Promise<CategoryPageContentApi | null> {
   try {
     const res = await fetch(apiUrl(`/api/categories/${categoryId}/page-content/`), {
-      cache: "no-store",
+      next: { revalidate: 300 },
     });
     if (res.status === 404) return null;
     if (!res.ok) return null;
@@ -449,7 +448,7 @@ export async function fetchCategoryPageContent(categoryId: number): Promise<Cate
 
 export async function fetchSiteSettings(): Promise<SiteSettingApi[]> {
   try {
-    const res = await fetch(apiUrl("/api/settings_app/"), { cache: "no-store" });
+    const res = await fetch(apiUrl("/api/settings_app/"), { next: { revalidate: 300 } });
     if (!res.ok) return [];
     const data = (await res.json()) as unknown;
     return Array.isArray(data) ? (data as SiteSettingApi[]) : [];
@@ -459,11 +458,11 @@ export async function fetchSiteSettings(): Promise<SiteSettingApi[]> {
 }
 
 export async function fetchLegalPage(
-  pageType: "terms" | "privacy",
+  pageType: "terms" | "privacy" | "disclaimer" | "editorial-policy",
 ): Promise<LegalPageApi | null> {
   try {
     const res = await fetch(apiUrl(`/api/legal/${pageType}/`), {
-      cache: "no-store",
+      next: { revalidate: 300 },
     });
     if (!res.ok) return null;
     const raw = (await res.json()) as unknown;
@@ -515,6 +514,9 @@ export type CareerFAQApi = {
   id: number;
   question: string;
   answer: string;
+  section_title?: string;
+  heading?: string;
+  title?: string;
 };
 
 export type CareerPageApi = {
@@ -528,6 +530,14 @@ export type CareerPageApi = {
   services_heading?: {
     title?: string;
   };
+  faq_heading?: {
+    title?: string;
+  } | string;
+  faqs_heading?: {
+    title?: string;
+  } | string;
+  faq_title?: string;
+  faq_section_title?: string;
   support?: CareerSupportApi;
   cta?: CareerCTAApi;
   faqs?: CareerFAQApi[];
@@ -535,7 +545,7 @@ export type CareerPageApi = {
 
 export async function fetchCareerPage(): Promise<CareerPageApi> {
   const res = await fetch(apiUrl("/api/career/page/"), {
-    cache: "no-store",
+    next: { revalidate: 300 },
   });
 
   if (!res.ok) {

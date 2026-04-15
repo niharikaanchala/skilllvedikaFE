@@ -19,7 +19,7 @@ export default function Footer() {
             Get in touch with us.
           </p>
 
-          <form className="flex w-full max-w-md items-center rounded-full bg-white/95 p-1">
+          {/* <form className="flex w-full max-w-md items-center rounded-full bg-white/95 p-1">
             <input
               type="email"
               placeholder="Enter your email"
@@ -33,11 +33,11 @@ export default function Footer() {
             >
               →
             </button>
-          </form>
+          </form> */}
         </div>
 
         {/* Grid */}
-        <div className="grid gap-8 md:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-5">
 
           {/* Brand */}
           <div>
@@ -46,6 +46,10 @@ export default function Footer() {
                 <img
                   src={logo}
                   alt={brandLabel}
+                  loading="lazy"
+                  decoding="async"
+                  width={140}
+                  height={48}
                   className="h-12 w-auto max-w-[140px] object-contain object-left"
                 />
               )}
@@ -115,6 +119,39 @@ export default function Footer() {
               <li>
                 <Link href="/career-services" className="hover:text-white transition">
                   Career Services
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-100">
+              Legal
+            </h3>
+            <ul className="mt-3 space-y-2 text-sm text-slate-300">
+              <li>
+                <Link href="/privacy" className="hover:text-white transition">
+                  Privacy Policy
+                </Link>
+              </li>
+            </ul>
+            <ul className="mt-3 space-y-2 text-sm text-slate-300">
+              <li>
+                <Link href="/terms" className="hover:text-white transition">
+                  Terms & Conditions
+                </Link>
+              </li>
+            </ul>
+            <ul className="mt-3 space-y-2 text-sm text-slate-300">
+            <li>
+                <Link href="/disclaimer" className="hover:text-white transition">
+                  Disclaimer
+                </Link>
+              </li>
+            </ul>
+            <ul className="mt-3 space-y-2 text-sm text-slate-300">
+              <li>
+                <Link href="/editorial-policy" className="hover:text-white transition">
+                  Editorial Policy
                 </Link>
               </li>
             </ul>

@@ -201,20 +201,27 @@ export default function Navbar() {
     return `/${item.toLowerCase().replace(/\s+/g, "-")}`;
   };
 
+  const logoSrc = logo
+    ? logo.startsWith("http")
+      ? logo
+      : `${API_URL}${logo}`
+    : null;
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 w-full border-b border-slate-200/70 bg-white/95 px-4 py-3 backdrop-blur-sm md:px-8">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between">
 
         {/* LOGO */}
         <Link href="/" className="flex items-center gap-2">
-          {logo ? (
+          {logoSrc ? (
             <img
-              src={
-                logo.startsWith("http")
-                  ? `${logo}?v=${Date.now()}`
-                  : `${API_URL}${logo}?v=${Date.now()}`
-              }
+              src={logoSrc}
               alt="Logo"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+              width={160}
+              height={48}
               className="h-12 w-auto"
             />
           ) : (

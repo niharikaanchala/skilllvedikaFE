@@ -118,6 +118,11 @@ export default function ContactClient({ initialData }: Props) {
                   <img
                     src={apiUrl(data.hero.image)}
                     alt="Hero"
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
+                    width={232}
+                    height={232}
                     className="w-58 h-58 rounded-full object-cover shadow-md border-4 border-white"
                   />
                 ) : (
