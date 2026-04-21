@@ -174,8 +174,7 @@ function CourseCard({ course, category }: { course: CourseApi, category: Categor
           </span>
         </div>
 
-        <div className="mt-4 flex items-end justify-between gap-4">
-          <div className="text-sm font-bold text-rose-600">{course.price}</div>
+        <div className="mt-4 flex items-end justify-end gap-4">
           <span className="text-[11px] font-bold text-[#0066FF] border-2 border-[#0066FF]/40 bg-[#0066FF]/5 px-3 py-1.5 rounded-full group-hover:bg-[#0066FF] group-hover:text-white transition-colors">
             View details
           </span>
@@ -329,12 +328,12 @@ export default async function CategoryPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="relative px-6 md:px-12 py-12 md:py-16 border-b border-sky-100/80 overflow-hidden bg-gradient-to-br from-[#E7F3FF] via-white to-sky-50/50">
+      <section className="relative px-6 md:px-12 py-12 md:py-16 border-b border-blue-200/60 overflow-hidden bg-gradient-to-br from-blue-100 via-blue-100 to-blue-100">
         <div
           className="pointer-events-none absolute inset-0 opacity-40"
           style={{
             background:
-              "radial-gradient(ellipse 70% 60% at 10% 0%, rgba(0,102,255,0.12), transparent 50%)",
+              "radial-gradient(ellipse 70% 60% at 10% 0%, rgba(0,102,255,0.12), transparent 50%)",  
           }}
           aria-hidden
         />
@@ -363,12 +362,17 @@ export default async function CategoryPage({ params }: PageProps) {
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
+          <CounsellingModal
+              buttonText="Enroll now"
+              className="inline-flex items-center justify-center rounded-full bg-[#2563EB] text-white px-5 py-2.5 text-sm font-bold shadow-md hover:bg-[#1d4ed8] transition"
+            />
             <Link
               href="/courses"
               className="inline-flex items-center justify-center rounded-full border-2 border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-[#001f3f] hover:bg-[#E7F3FF] hover:border-[#0066FF]/30 transition shadow-sm"
             >
               ← Back to Courses
             </Link>
+            
             <span className="text-xs font-bold text-[#001f3f] bg-[#E7F3FF] border border-sky-200 px-4 py-2 rounded-full">
               {categoryCourses.length}{" "}
               {categoryCourses.length === 1 ? "course" : "courses"}

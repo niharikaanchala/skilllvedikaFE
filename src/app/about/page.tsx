@@ -402,7 +402,7 @@ import { apiUrl } from "../lib/api";
 async function getAboutData() {
   try {
     const res = await fetch(apiUrl("/api/about/"), {
-      next: { revalidate: 300 },
+      cache: "no-store",
     });
     if (!res.ok) return null;
 
@@ -415,7 +415,7 @@ async function getAboutData() {
 async function getCourses() {
   try {
     const res = await fetch(apiUrl("/api/courses/"), {
-      next: { revalidate: 300 },
+      cache: "no-store",
     });
     if (!res.ok) return [];
     const data = await res.json();

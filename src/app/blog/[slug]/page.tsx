@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { fetchBlogs, fetchCourses } from "@/app/lib/api";
+import { fetchBlogs } from "@/app/lib/api";
 import { blogArticleMeta, formatBlogDate } from "@/app/lib/blog-utils";
 import { enforcePoppinsHtml } from "@/app/lib/html";
 import { buildBlogDetailSchema } from "@/app/components/schemas/blog-schema";
@@ -106,10 +106,7 @@ function injectH2IdsAndBuildToc(
 export default async function BlogDetailPage({ params }: PageProps) {
   const { slug } = await params;
 
-  const [allBlogs, courses] = await Promise.all([
-    fetchBlogs().catch(() => [] as Awaited<ReturnType<typeof fetchBlogs>>),
-    fetchCourses().catch(() => [] as Awaited<ReturnType<typeof fetchCourses>>),
-  ]);
+  const allBlogs = await fetchBlogs().catch(() => [] as Awaited<ReturnType<typeof fetchBlogs>>);
   
 
   const post = allBlogs.find((b) => b.slug === slug);
@@ -121,7 +118,6 @@ export default async function BlogDetailPage({ params }: PageProps) {
     { name: post.title, url: `/blog/${post.slug}` },
   ]);
   const htmlContent = enforcePoppinsHtml(post.paragraphs?.map((p) => p.content).join("") ?? "");
-  const relatedCourses = courses.slice(0, 2);
   // const recommended = allBlogs
   // .filter(
   //   (b) =>
@@ -129,18 +125,11 @@ export default async function BlogDetailPage({ params }: PageProps) {
   //     b.category?.toLowerCase() === post.category?.toLowerCase()
   // )
   // .slice(0, 4);
-  let recommended = allBlogs.filter(
+  const recommended = allBlogs.filter(
     (b) =>
       b.slug !== slug &&
       b.category?.toLowerCase() === post.category?.toLowerCase()
   );
-  
-  if (recommended.length < 4) {
-    const fallback = allBlogs.filter((b) => b.slug !== slug);
-    recommended = [...recommended, ...fallback].slice(0, 4);
-  } else {
-    recommended = recommended.slice(0, 4);
-  }
 
   const paragraphs = post.paragraphs?.map((p) => p.content) ?? [];
   const tocSections: { title: string; id: string }[] = [];
@@ -191,17 +180,19 @@ export default async function BlogDetailPage({ params }: PageProps) {
             </p>
 
             {post.image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={post.image_url}
-                alt={post.title}
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-                width={1200}
-                height={630}
-                className="mt-6 max-h-[380px] w-full rounded-xl border border-slate-200 object-cover"
-              />
+              <div className="mt-6 flex w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={post.image_url}
+                  alt={post.title}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                  width={1200}
+                  height={630}
+                  className="h-auto w-full rounded-lg object-cover"
+                />
+              </div>
             ) : null}
 
             <p className="mt-8 text-lg leading-relaxed text-slate-700">{post.excerpt}</p>
@@ -211,7 +202,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
               dangerouslySetInnerHTML={{ __html: htmlContent }}
             />
 
-            {relatedCourses.length > 0 && (
+            {/* {relatedCourses.length > 0 && (
               <div className="mt-10 overflow-hidden rounded-xl border border-slate-200 bg-white">
                 <div className="border-b border-slate-200 px-5 py-3 text-sm font-semibold text-[#1a2d49]">Related Courses</div>
                 {relatedCourses.map((course) => (
@@ -224,7 +215,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
                   </div>
                 ))}
               </div>
-            )}
+            )} */}
           </article>
 
           <aside className="hidden md:block">
@@ -234,41 +225,47 @@ export default async function BlogDetailPage({ params }: PageProps) {
               </h3>
 
               <div className="mt-4 space-y-4">
-                {recommended.map((item) => (
-                  <Link
-                    key={item.slug}
-                    href={`/blog/${item.slug}`}
-                    className="block rounded-lg border border-slate-200 bg-white p-3 transition hover:shadow-sm"
-                  >
-                    {item.image_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.image_url}
-                        alt={item.title}
-                        loading="lazy"
-                        decoding="async"
-                        width={320}
-                        height={80}
-                        className="mb-2 h-20 w-full rounded-md object-cover"
-                      />
-                    ) : null}
+                {recommended.length === 0 ? (
+                  <p className="text-sm text-slate-500">No related blogs in this category.</p>
+                ) : (
+                  recommended.slice(0, 4).map((item) => (
+                    <Link
+                      key={item.slug}
+                      href={`/blog/${item.slug}`}
+                      className="group block rounded-lg border border-slate-200 bg-white p-3 transition-all duration-300 hover:bg-[#F0F7FF] hover:shadow-md"
+                    >
+                      {item.image_url ? (
+                        <div className="mb-2 flex h-20 w-full items-center justify-center rounded-md bg-slate-100">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.image_url}
+                            alt={item.title}
+                            loading="lazy"
+                            decoding="async"
+                            width={320}
+                            height={80}
+                            className="h-full w-full rounded-md object-cover"
+                          />
+                        </div>
+                      ) : null}
 
-                    <p className="text-[11px] font-semibold text-[#2f5fa8]">
-                      {item.category}
-                    </p>
+                      <p className="text-[11px] font-semibold text-[#2f5fa8] group-hover:text-[#1d4ed8] transition-colors">
+                        {item.category}
+                      </p>
 
-                    <p className="mt-1 text-sm font-medium leading-snug text-slate-800">
-                      {item.title}
-                    </p>
-                  </Link>
-                ))}
+                      <p className="mt-1 text-sm font-medium leading-snug text-slate-800 group-hover:text-[#1d4ed8] transition-colors">
+                        {item.title}
+                      </p>
+                    </Link>
+                  ))
+                )}
               </div>
             </div>
           </aside>
         </div>
       </section>
 
-      <section className="px-6 py-12 md:px-12">
+      {/* <section className="px-6 py-12 md:px-12">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-center text-3xl font-extrabold text-[#1a2d49]">Frequently Asked Questions</h2>
           <div className="mt-6 space-y-3">
@@ -286,7 +283,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
             </details>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <section className="border-y border-slate-200/70 bg-[#eaf0f7] px-6 py-14 md:px-12">
         <div className="max-w-6xl mx-auto text-center">
@@ -301,7 +298,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="px-6 py-12 md:px-12">
+      {/* <section className="px-6 py-12 md:px-12">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-extrabold text-[#1a2d49]">Recommended Articles</h2>
           {recommended.length === 0 ? (
@@ -334,7 +331,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
             </div>
           )}
         </div>
-      </section>
+      </section> */}
       </main>
     </>
   );

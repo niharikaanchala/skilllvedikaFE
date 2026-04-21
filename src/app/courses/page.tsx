@@ -252,8 +252,7 @@ export default async function CoursesPage({
       </section>
 
       {/* Hero */}
-      <section className="border-b border-slate-200/70 bg-gradient-to-br from-sky-50 via-blue-50 to-sky-100 px-6 py-14 md:px-12 md:py-20">
-        <div className="max-w-6xl mx-auto">
+      <section className="border-b border-sky-200/60 bg-gradient-to-br from-sky-100 via-sky-100 to-sky-100 px-6 py-14 md:px-12 md:py-20">         <div className="max-w-6xl mx-auto">
           {/* <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#2f5fa8]">
             SkillVedika
           </p> */}
@@ -361,23 +360,31 @@ export default async function CoursesPage({
             {pageContent?.whyTitle || "Why invest in Professional Training?"}
           </h2>
 
-          <p className="mx-auto mt-4 max-w-3xl text-sm leading-relaxed text-slate-600 md:text-base">
-            {pageContent?.whyIntro ||
-              "Structured learning helps you move faster with clear milestones."}
-          </p>
+          {pageContent?.whyIntro?.trim() ? (
+            <p className="mx-auto mt-4 max-w-3xl text-sm leading-relaxed text-slate-600 md:text-base">
+              {pageContent.whyIntro}
+            </p>
+          ) : null}
 
-          <ul className="mx-auto mt-8 max-w-3xl space-y-3 text-left text-sm text-slate-700">
-            {Array.isArray(pageContent?.whyPoints)
-              ? pageContent.whyPoints.map((item: string, index: number) => (
-                  <li key={`why-${index}-${String(item).slice(0, 20)}`} className="flex gap-3 items-start">
-                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#2f5fa8]/12 text-xs font-bold text-[#2f5fa8] ring-1 ring-[#2f5fa8]/20">
-                      ✓
-                    </span>
-                    <span className="leading-relaxed pt-0.5">{item}</span>
-                  </li>
-                ))
-              : null}
-          </ul>
+          {pageContent?.whyPointsHtml ? (
+            <div
+              className="prose prose-slate mx-auto mt-8 max-w-3xl text-left"
+              dangerouslySetInnerHTML={{ __html: pageContent.whyPointsHtml }}
+            />
+          ) : (
+            <ul className="mx-auto mt-8 max-w-3xl space-y-3 text-left text-sm text-slate-700">
+              {Array.isArray(pageContent?.whyPoints)
+                ? pageContent.whyPoints.map((item: string, index: number) => (
+                    <li key={`why-${index}-${String(item).slice(0, 20)}`} className="flex gap-3 items-start">
+                      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#2f5fa8]/12 text-xs font-bold text-[#2f5fa8] ring-1 ring-[#2f5fa8]/20">
+                        ✓
+                      </span>
+                      <span className="leading-relaxed pt-0.5">{item}</span>
+                    </li>
+                  ))
+                : null}
+            </ul>
+          )}
         </div>
       </section>
 

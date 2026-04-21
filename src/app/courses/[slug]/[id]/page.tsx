@@ -223,20 +223,20 @@ export default async function CourseDetailPage({ params }: PageProps) {
   const aboutText =
     aboutSections?.[0]?.content?.trim() || course.description;
   const aboutHeading =
-    aboutSections?.[0]?.heading?.trim() ||
     sectionMeta?.about_heading?.trim() ||
+    aboutSections?.[0]?.heading?.trim() ||
     "About This Course";
   const placementSupportText =
     placementSupportSections?.[0]?.content?.trim() || "";
   const placementSupportHeading =
-    placementSupportSections?.[0]?.heading?.trim() ||
     sectionMeta?.placement_support_heading?.trim() ||
+    placementSupportSections?.[0]?.heading?.trim() ||
     "Placement Support";
   const corporateTrainingText =
     corporateTrainingSections?.[0]?.content?.trim() || "";
   const corporateTrainingHeading =
-    corporateTrainingSections?.[0]?.heading?.trim() ||
     sectionMeta?.corporate_training_heading?.trim() ||
+    corporateTrainingSections?.[0]?.heading?.trim() ||
     "Corporate Training";
   const aboutHtml = enforcePoppinsHtml(aboutText);
   const placementSupportHtml = enforcePoppinsHtml(placementSupportText);
@@ -379,18 +379,6 @@ const handleSubmit=async()=>{
               >
                 ⭐ {formatRating(course.rating)} Rating
               </div>
-            </div>
-
-            <div className="mt-8 flex items-baseline gap-3 flex-wrap">
-              <span className="text-sm text-white/70 uppercase tracking-wide font-semibold">
-                Fee
-              </span>
-              <span
-                className="text-3xl md:text-4xl font-extrabold"
-                style={{ color: gold }}
-              >
-                {course.price}
-              </span>
             </div>
 
             <div className="mt-8 flex flex-wrap gap-4">

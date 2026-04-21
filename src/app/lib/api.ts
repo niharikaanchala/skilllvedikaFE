@@ -135,28 +135,40 @@ export type CourseSectionMetaApi = {
 };
 
 async function fetchJsonOptionalArray<T>(path: string): Promise<T[]> {
-  const res = await fetch(apiUrl(path), { next: { revalidate: 300 } });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
+  try {
+    const res = await fetch(apiUrl(path), { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
 }
 
 export async function fetchCourseById(id: number): Promise<CourseApi | null> {
-  const res = await fetch(apiUrl(`/api/courses/${id}/`), { next: { revalidate: 300 } });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Failed to fetch course: ${res.status}`);
-  return res.json();
+  try {
+    const res = await fetch(apiUrl(`/api/courses/${id}/`), { next: { revalidate: 300 } });
+    if (res.status === 404) return null;
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 /** Course row from course-details slug endpoint (minimal); use with fetchCourseById for full row. */
 export async function fetchCourseIdBySlug(slug: string): Promise<number | null> {
-  const res = await fetch(
-    apiUrl(`/api/course-details/course/${encodeURIComponent(slug)}/`),
-    { next: { revalidate: 300 } },
-  );
-  if (!res.ok) return null;
-  const data = (await res.json()) as { id?: number };
-  return typeof data.id === "number" ? data.id : null;
+  try {
+    const res = await fetch(
+      apiUrl(`/api/course-details/course/${encodeURIComponent(slug)}/`),
+      { next: { revalidate: 300 } },
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as { id?: number };
+    return typeof data.id === "number" ? data.id : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchCourseSkills(courseRef: number | string) {
@@ -260,9 +272,13 @@ export async function fetchCourseSectionMeta(courseRef: number | string): Promis
     typeof courseRef === "string"
       ? `/api/course-details/course/${encodeURIComponent(courseRef)}/meta/`
       : `/api/course-details/courses/${courseRef}/meta/`;
-  const res = await fetch(apiUrl(path), { next: { revalidate: 300 } });
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const res = await fetch(apiUrl(path), { next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -278,11 +294,11 @@ async function fetchJson<T>(path: string): Promise<T> {
 }
 
 export function fetchCategories(): Promise<CategoryApi[]> {
-  return fetchJson<CategoryApi[]>("/api/categories/");
+  return fetchJson<CategoryApi[]>("/api/categories/").catch(() => []);
 }
 
 export function fetchCourses(): Promise<CourseApi[]> {
-  return fetchJson<CourseApi[]>("/api/courses/");
+  return fetchJson<CourseApi[]>("/api/courses/").catch(() => []);
 }
 
 export async function fetchCoursesByCategory(
@@ -320,6 +336,7 @@ export type CoursesPageContentApi = {
   whyTitle?: string;
   whyIntro?: string;
   whyPoints?: string[];
+  whyPointsHtml?: string;
   ctaTitle?: string;
   ctaSubtitle?: string;
   ctaButtons?: { text?: string; link?: string; variant?: string }[];
@@ -373,12 +390,17 @@ export type BlogPostApi = {
 };
 
 export function fetchBlogs(): Promise<BlogPostApi[]> {
-  return fetchJson<BlogPostApi[]>("/api/blog/");
+  return fetch(apiUrl("/api/blog/"), { cache: "no-store" }).then((res) => {
+    if (!res.ok) {
+      throw new Error(`Failed to fetch /api/blog/: ${res.status}`);
+    }
+    return res.json() as Promise<BlogPostApi[]>;
+  });
 }
 
 export async function fetchBlogBySlug(slug: string): Promise<BlogPostApi | null> {
   const res = await fetch(apiUrl(`/api/blog/${encodeURIComponent(slug)}/`), {
-    next: { revalidate: 300 },
+    cache: "no-store",
   });
   if (res.status === 404) return null;
   if (!res.ok) {
@@ -397,32 +419,54 @@ export async function fetchCoursesPageContent(): Promise<CoursesPageContentApi |
     if (!res.ok) return null;
     const raw = (await res.json()) as CoursesPageContentApi & {
       faqItems?: CoursesPageContentApi["faqItems"] | string;
+      faq_items?: CoursesPageContentApi["faqItems"] | string;
       whyPoints?: CoursesPageContentApi["whyPoints"] | string;
+      why_points?: CoursesPageContentApi["whyPoints"] | string;
     };
 
-    let faqItems: CoursesPageContentApi["faqItems"] = Array.isArray(raw.faqItems) ? raw.faqItems : [];
-    if (!Array.isArray(raw.faqItems) && typeof raw.faqItems === "string") {
+    const faqRaw = raw.faqItems ?? raw.faq_items;
+    let faqItems: CoursesPageContentApi["faqItems"] = Array.isArray(faqRaw) ? faqRaw : [];
+    if (!Array.isArray(faqRaw) && typeof faqRaw === "string") {
       try {
-        const parsed = JSON.parse(raw.faqItems);
+        const parsed = JSON.parse(faqRaw);
         if (Array.isArray(parsed)) faqItems = parsed;
       } catch {
         faqItems = [];
       }
     }
 
-    let whyPoints: CoursesPageContentApi["whyPoints"] = Array.isArray(raw.whyPoints) ? raw.whyPoints : [];
-    const whyPointsRaw = raw.whyPoints as unknown;
+    const whyRaw = raw.whyPoints ?? raw.why_points;
+    let whyPoints: CoursesPageContentApi["whyPoints"] = Array.isArray(whyRaw) ? whyRaw : [];
+    let whyPointsHtml = "";
+    const whyPointsRaw = whyRaw as unknown;
     if (!Array.isArray(whyPointsRaw) && typeof whyPointsRaw === "string") {
-      whyPoints = whyPointsRaw
-        .split("\n")
-        .map((x: string) => x.trim())
-        .filter(Boolean);
+      const normalizedWhy = whyPointsRaw.trim();
+      const hasHtml = /<[^>]+>/.test(normalizedWhy);
+      if (hasHtml) {
+        whyPointsHtml = normalizedWhy;
+        whyPoints = [];
+      } else {
+        whyPoints = normalizedWhy
+          .split("\n")
+          .map((x: string) => x.trim())
+          .filter(Boolean);
+      }
+    } else if (Array.isArray(whyPointsRaw)) {
+      const joined = whyPointsRaw
+        .filter((x): x is string => typeof x === "string")
+        .join("\n")
+        .trim();
+      if (/<[^>]+>/.test(joined)) {
+        whyPointsHtml = joined;
+        whyPoints = [];
+      }
     }
 
     return {
       ...raw,
       faqItems,
       whyPoints,
+      whyPointsHtml,
     };
   } catch {
     return null;

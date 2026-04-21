@@ -51,6 +51,7 @@ export default async function BlogPage() {
     title: p.title,
     summary: p.excerpt,
     meta: blogArticleMeta(p),
+    image_url: p.image_url,
   }));
   const blogListSchema = buildBlogListSchema(posts);
   const breadcrumbSchema = buildBreadcrumbSchema([
@@ -114,16 +115,18 @@ export default async function BlogPage() {
                   className="group rounded-2xl overflow-hidden text-white bg-gradient-to-r from-[#2C6ED5] to-[#14B8A6] shadow-lg transition hover:scale-[1.02]"
                 >
                   {article.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={article.image_url}
-                      alt={article.title}
-                      loading="lazy"
-                      decoding="async"
-                      width={720}
-                      height={176}
-                      className="h-44 w-full object-cover"
-                    />
+                    <div className="flex h-44 w-full items-center justify-center bg-slate-100">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={article.image_url}
+                        alt={article.title}
+                        loading="lazy"
+                        decoding="async"
+                        width={720}
+                        height={176}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
                   ) : null}
                   <div className="p-6">
                   <span className="inline-block bg-white/20 px-3 py-1 text-xs rounded-full">

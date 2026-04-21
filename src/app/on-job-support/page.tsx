@@ -686,17 +686,17 @@ export default async function OnJobSupportPage() {
 
   const fixImageUrl = (raw: string | null) => {
     const u = (raw ?? "").trim();
-    // console.log("u: ", u)
-    if (!u){
-      console.log("data not found");
-      return "";
+    if (!u) return "";
+
+    // Avoid Next/Image "private ip" blocking by routing local-media URLs through
+    // our app rewrite (`/media/*` -> backend `/media/*`) instead of absolute localhost URLs.
+    if (/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?\/media\//i.test(u)) {
+      const mediaPath = u.replace(/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/i, "");
+      return mediaPath.startsWith("/") ? mediaPath : `/${mediaPath}`;
     }
-    if (/^https?:\/\//i.test(u)){
-      // console.log("url: ", u)
-      return u;
-    }
+
+    if (/^https?:\/\//i.test(u)) return u;
     const path = u.startsWith("/") ? u : `/${u}`;
-    console.log("path: ", path)
     return apiUrl(path);
   };
 

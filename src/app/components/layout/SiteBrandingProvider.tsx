@@ -103,6 +103,10 @@ import { apiUrl } from "../../lib/api";
 export type SiteBranding = {
   brand_name?: string;
   logo?: string | null;
+  facebook_url?: string | null;
+  instagram_url?: string | null;
+  linkedin_url?: string | null;
+  youtube_url?: string | null;
 };
 
 type SiteBrandingContextType = SiteBranding & {
@@ -144,6 +148,22 @@ export function SiteBrandingProvider({
         logo:
           typeof data.logo === "string"
             ? data.logo
+            : null,
+        facebook_url:
+          typeof data.facebook_url === "string"
+            ? data.facebook_url
+            : null,
+        instagram_url:
+          typeof data.instagram_url === "string"
+            ? data.instagram_url
+            : null,
+        linkedin_url:
+          typeof data.linkedin_url === "string"
+            ? data.linkedin_url
+            : null,
+        youtube_url:
+          typeof data.youtube_url === "string"
+            ? data.youtube_url
             : null,
       };
       brandingCache = normalizedBranding;

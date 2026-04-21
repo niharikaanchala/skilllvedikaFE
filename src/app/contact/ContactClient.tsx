@@ -26,6 +26,7 @@ export type ContactPageData = {
     label?: string;
     value?: string;
     link?: string;
+    map_embed_url?: string;
   }>;
   demo?: {
     title?: string;
@@ -36,6 +37,7 @@ export type ContactPageData = {
     title?: string;
     subtitle?: string;
     button_text?: string;
+    map_embed_url?: string;
   };
 };
 
@@ -43,9 +45,16 @@ type Props = {
   initialData: ContactPageData | null;
 };
 
+type CourseOption = {
+  id: number | string;
+  title: string;
+};
+
 export default function ContactClient({ initialData }: Props) {
   const [submitted, setSubmitted] = useState(false);
   const [data, setData] = useState<ContactPageData | null>(initialData);
+  const [courseOptions, setCourseOptions] = useState<CourseOption[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(false);
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -57,12 +66,89 @@ export default function ContactClient({ initialData }: Props) {
   useEffect(() => {
     if (data) return;
     fetch(apiUrl("/api/contact/contact-page/"))
-      .then((res) => res.json() as Promise<ContactPageData>)
-      .then((json) => setData(json))
+      .then(async (res) => {
+        if (!res.ok) return null;
+        const contentType = res.headers.get("content-type") ?? "";
+        if (!contentType.includes("application/json")) return null;
+        const json = (await res.json()) as unknown;
+        if (!json || typeof json !== "object") return null;
+        return json as ContactPageData;
+      })
+      .then((json) => {
+        if (!json) return;
+        setData(json);
+      })
       .catch((err) => console.error("API Error:", err));
   }, [data]);
 
+  useEffect(() => {
+    let mounted = true;
+    setCoursesLoading(true);
+    fetch(apiUrl("/api/courses/"), { cache: "force-cache" })
+      .then(async (res) => {
+        if (!res.ok) return [] as CourseOption[];
+        const json = (await res.json()) as unknown;
+        if (!Array.isArray(json)) return [] as CourseOption[];
+        return json
+          .map((item: Record<string, unknown>) => {
+            const title =
+              typeof item.title === "string"
+                ? item.title
+                : typeof item.name === "string"
+                  ? item.name
+                  : "";
+            const id =
+              typeof item.id === "number" || typeof item.id === "string"
+                ? item.id
+                : title;
+            return { id, title };
+          })
+          .filter((item: CourseOption) => item.title.trim().length > 0);
+      })
+      .then((courses) => {
+        if (!mounted) return;
+        setCourseOptions(courses);
+      })
+      .catch(() => {
+        if (mounted) setCourseOptions([]);
+      })
+      .finally(() => {
+        if (mounted) setCoursesLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const contactItems = useMemo(() => data?.contact_info ?? [], [data]);
+  const mapSrc = useMemo(() => {
+    const fallbackMap =
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3805.323180100732!2d78.39097917493721!3d17.49207948341315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcb918eb6921b7d%3A0x81590ec7359ee666!2sManjeera%20Majestic%20Commercial!5e0!3m2!1sen!2sin!4v1776749671762!5m2!1sen!2sin";
+
+    const addressItem = contactItems.find((item) => item.type === "address");
+    const mapFromContactInfo = addressItem?.map_embed_url?.trim() ?? "";
+    const adminLink = addressItem?.link?.trim() ?? "";
+    const adminAddress = addressItem?.value?.trim() ?? "";
+    const mapFromForm = data?.form?.map_embed_url?.trim() ?? "";
+
+    if (mapFromContactInfo) {
+      if (mapFromContactInfo.includes("google.com/maps/embed")) return mapFromContactInfo;
+      return `https://www.google.com/maps?q=${encodeURIComponent(mapFromContactInfo)}&output=embed`;
+    }
+
+    if (adminLink) {
+      if (adminLink.includes("google.com/maps/embed")) return adminLink;
+      return `https://www.google.com/maps?q=${encodeURIComponent(adminLink)}&output=embed`;
+    }
+    if (adminAddress) {
+      return `https://www.google.com/maps?q=${encodeURIComponent(adminAddress)}&output=embed`;
+    }
+    if (mapFromForm) {
+      if (mapFromForm.includes("google.com/maps/embed")) return mapFromForm;
+      return `https://www.google.com/maps?q=${encodeURIComponent(mapFromForm)}&output=embed`;
+    }
+    return fallbackMap;
+  }, [contactItems, data?.form?.map_embed_url]);
 
   if (!data) return <p className="text-center py-20">Loading...</p>;
 
@@ -192,9 +278,24 @@ export default function ContactClient({ initialData }: Props) {
                 </div>
               );
             })}
+            <div className="md:col-span-2 rounded-xl border border-slate-200 bg-white overflow-hidden">
+              <iframe
+                src={mapSrc}
+                width="100%"
+                height="400"
+                loading="lazy"
+                style={{ border: 0 }}
+                allowFullScreen
+                // referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+
           </div>
         </div>
       </section>
+
+      
+
 
       {/* Demo section */}
       <section className="bg-[#EAF2FC] px-6 md:px-12 py-16">
@@ -254,11 +355,14 @@ export default function ContactClient({ initialData }: Props) {
                 required
                 className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2D6ED5]"
               >
-                <option value="">Choose a course</option>
-                <option>Web Development</option>
-                <option>Full Stack</option>
-                <option>Data Science</option>
-                <option>Cyber Security</option>
+                <option value="">
+                  {coursesLoading ? "Loading courses..." : "Choose a course"}
+                </option>
+                {courseOptions.map((course) => (
+                  <option key={course.id} value={course.title}>
+                    {course.title}
+                  </option>
+                ))}
               </select>
 
               <label className="flex items-start gap-2 text-sm text-[#12233F]/70">

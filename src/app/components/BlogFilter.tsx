@@ -9,6 +9,7 @@ export type BlogFilterArticle = {
   title: string;
   summary: string;
   meta: string;
+  image_url?: string;
 };
 
 type Props = {
@@ -68,6 +69,20 @@ export default function BlogFilter({ articles }: Props) {
             className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition overflow-hidden"
           >
             <div className="h-1 bg-gradient-to-r from-[#2C6ED5] to-[#14B8A6]" />
+            {article.image_url ? (
+              <div className="h-44 w-full bg-slate-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={article.image_url}
+                  alt={article.title}
+                  loading="lazy"
+                  decoding="async"
+                  width={640}
+                  height={176}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            ) : null}
 
             <div className="p-5">
               <p className="text-xs font-semibold text-[#2C6ED5]">{article.category}</p>

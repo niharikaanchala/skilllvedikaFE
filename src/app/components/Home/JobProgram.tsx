@@ -36,27 +36,50 @@ export default function JobProgram({ heading, intro, items }: Props) {
   };
 
   return (
-    <section className="bg-[#edf1f7] px-6 py-14 text-center md:px-10 md:py-16">
-      {h ? <h2 className="text-3xl font-bold text-[#173765]">{h}</h2> : null}
-      {introT ? <p className="mx-auto mt-2 max-w-lg text-sm text-slate-600">{introT}</p> : null}
+    <section className="bg-gradient-to-b from-[#f3f7fc] to-[#e9f0f8] px-6 py-16 md:px-10 text-center">
+      
+      {/* HEADER */}
+      {h ? (
+        <h2 className="text-3xl md:text-4xl font-bold text-[#173765]">
+          {h}
+        </h2>
+      ) : null}
 
+      {introT ? (
+        <p className="mx-auto mt-3 max-w-xl text-sm md:text-base text-slate-600 leading-relaxed">
+          {introT}
+        </p>
+      ) : null}
+
+      {/* ITEMS */}
       {hasItems ? (
-        <div className="mx-auto mt-8 grid max-w-4xl gap-4 text-left md:grid-cols-2">
+        <div className="mx-auto mt-10 grid max-w-5xl gap-5 text-left md:grid-cols-2">
           {items.map((item, i) => (
             <div
               key={`${item.title}-${i}`}
-              className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-[0_2px_8px_rgba(15,39,68,0.06)] transition hover:shadow-[0_6px_14px_rgba(15,39,68,0.12)]"
+              className="group flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:bg-[#f0f6ff]"
             >
-              <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#c7d6ea] bg-[#eef4fb] text-[#2c4f86]">
+              
+              {/* ICON */}
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#c7d6ea] bg-[#eef4fb] text-[#2c4f86] transition group-hover:bg-[#2f5fa8] group-hover:text-white">
                 {(() => {
                   const Icon = iconForTitle(item.title, i);
-                  return <Icon size={16} strokeWidth={2} aria-hidden />;
+                  return <Icon size={18} strokeWidth={2} aria-hidden />;
                 })()}
               </div>
+
+              {/* TEXT */}
               <div>
-                <p className="font-semibold text-[#1a2d49]">{item.title}</p>
-                {item.description ? <p className="mt-1 text-sm leading-5 text-slate-600">{item.description}</p> : null}
+                <p className="text-base font-semibold text-[#1a2d49]">
+                  {item.title}
+                </p>
+                {item.description ? (
+                  <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                    {item.description}
+                  </p>
+                ) : null}
               </div>
+
             </div>
           ))}
         </div>

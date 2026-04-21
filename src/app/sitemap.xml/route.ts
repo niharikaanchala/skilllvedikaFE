@@ -30,6 +30,30 @@ function absoluteUrl(origin: string, path: string): string {
   return `${cleanOrigin}${cleanPath}`;
 }
 
+function resolveOrigin(request: NextRequest): string {
+  const isLocalHostName = (host: string): boolean => {
+    const normalized = host.toLowerCase().split(":")[0];
+    return normalized === "localhost" || normalized === "127.0.0.1" || normalized === "::1";
+  };
+
+  const envSiteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() || process.env.SITE_URL?.trim();
+  if (envSiteUrl) return envSiteUrl.replace(/\/$/, "");
+
+  const forwardedHost = request.headers.get("x-forwarded-host")?.trim();
+  const forwardedProto = request.headers.get("x-forwarded-proto")?.trim() || "https";
+  if (forwardedHost && !isLocalHostName(forwardedHost)) {
+    return `${forwardedProto}://${forwardedHost}`.replace(/\/$/, "");
+  }
+
+  const requestOrigin = (request.nextUrl.origin || "").trim().replace(/\/$/, "");
+  const requestHost = request.nextUrl.hostname?.toLowerCase() || "";
+  const isLocalHost = isLocalHostName(requestHost);
+
+  if (requestOrigin && !isLocalHost) return requestOrigin;
+  return "https://skillvedika.com";
+}
+
 async function safeFetch<T>(fn: () => Promise<T>): Promise<T | null> {
   try {
     return await fn();
@@ -39,7 +63,7 @@ async function safeFetch<T>(fn: () => Promise<T>): Promise<T | null> {
 }
 
 export async function GET(request: NextRequest) {
-  const origin = request.nextUrl.origin || process.env.NEXT_PUBLIC_SITE_URL || " https://skillvedika.com";
+  const origin = resolveOrigin(request);
 
   const staticPaths = [
     "/",
@@ -91,6 +115,7 @@ export async function GET(request: NextRequest) {
   }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
+  <?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${Array.from(urls.keys())
   .map((loc) => {

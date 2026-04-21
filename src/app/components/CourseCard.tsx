@@ -48,10 +48,7 @@ export default function CourseCard({ course }: { course: CourseApi }) {
         </div>
 
         {/* Bottom */}
-        <div className="mt-4 flex justify-between items-center gap-3 border-t border-slate-100 pt-3">
-          <div className="text-sm font-bold text-[#b45309]">
-            {course.price || "Free"}
-          </div>
+        <div className="mt-4 flex items-center justify-end gap-3 border-t border-slate-100 pt-3">
           <span className="text-[11px] font-semibold text-[#2f5fa8] underline-offset-2 group-hover:underline">
             View course →
           </span>

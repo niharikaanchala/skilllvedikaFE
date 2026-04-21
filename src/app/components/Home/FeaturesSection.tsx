@@ -1,5 +1,3 @@
-import { CheckCircle } from "lucide-react";
-
 type Item = { title: string; description?: string; icon?: string };
 
 type Props = {
@@ -20,38 +18,63 @@ export default function FeaturesSection({ heading, intro, items }: Props) {
   const showCopy = Boolean(h || introT);
 
   return (
-    <section className="bg-[#e8f0f8] px-6 py-14 md:px-10 md:py-16">
-      <div className="mx-auto grid max-w-6xl items-center gap-8 md:grid-cols-[1.1fr_220px_1.1fr]">
+    <section className="bg-gradient-to-b from-[#eef5fc] to-[#e3edf8] px-6 py-16 md:px-10">
+      <div className="mx-auto max-w-6xl grid gap-10 md:grid-cols-2 items-center">
+
+        {/* LEFT CONTENT */}
         {showCopy ? (
-          <div>
-            {h ? <h2 className="text-3xl font-bold leading-snug text-[#183760]">{h}</h2> : null}
-            {introT ? <p className="mt-4 text-sm leading-relaxed text-slate-600">{introT}</p> : null}
+          <div className="space-y-4">
+            {h && (
+              <h2 className="text-3xl md:text-4xl font-bold text-[#183760] leading-snug">
+                {h.split(" ").map((word, i, arr) => {
+                  const isLast = i === arr.length - 1;
+
+                  return (
+                    <span
+                      key={i}
+                      className={isLast ? "text-[#2f5fa8]" : ""}
+                    >
+                      {word}
+                      {i !== arr.length - 1 && " "}
+                    </span>
+                  );
+                })}
+              </h2>
+            )}
+
+            {introT && (
+              <p className="text-sm md:text-base text-slate-600 leading-relaxed max-w-md">
+                {introT}
+              </p>
+            )}
           </div>
         ) : (
           <div />
         )}
 
-        <div className="mx-auto hidden h-44 w-44 place-items-center rounded-full border-2 border-[#2f5fa8]/50 bg-[#f2f7fd] shadow-inner md:grid">
-          <div className="grid h-20 w-20 place-items-center rounded-full bg-white text-[#2f5fa8] shadow-sm">
-            <CheckCircle size={34} aria-hidden />
-          </div>
-        </div>
-
+        {/* RIGHT FEATURES */}
         {hasItems ? (
-          <div className="space-y-3">
+          <div className="grid gap-4">
             {items.slice(0, 4).map((f, i) => (
               <div
                 key={`${f.title}-${i}`}
-                className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm"
+                className="group flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:bg-[#e6f0ff]"
               >
-                <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#2f5fa8]/10 text-xs font-bold text-[#2f5fa8]">
+                {/* NUMBER BADGE */}
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2f5fa8]/10 text-sm font-bold text-[#2f5fa8] group-hover:bg-[#2f5fa8] group-hover:text-white transition">
                   {String(i + 1).padStart(2, "0")}
                 </span>
+
+                {/* TEXT */}
                 <div>
-                  <p className="text-sm font-semibold text-slate-800">{f.title}</p>
-                  {f.description ? (
-                    <p className="mt-0.5 text-xs text-slate-500">{f.description}</p>
-                  ) : null}
+                  <p className="text-sm md:text-base font-semibold text-slate-800">
+                    {f.title}
+                  </p>
+                  {f.description && (
+                    <p className="mt-1 text-xs md:text-sm text-slate-500 leading-relaxed">
+                      {f.description}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
@@ -59,6 +82,7 @@ export default function FeaturesSection({ heading, intro, items }: Props) {
         ) : (
           <div />
         )}
+
       </div>
     </section>
   );

@@ -2,7 +2,7 @@
 
 import { Home } from "lucide-react";
 import Link from "next/link";
-import { useState ,useEffect} from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 /* SAME TYPES (unchanged) */
@@ -12,6 +12,37 @@ type Course = {
   title: string;
   category_name?: string;
 };
+
+function normalizeStringList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === "string" ? item.trim() : ""))
+      .filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    const raw = value.trim();
+    if (!raw) return [];
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map((item) => (typeof item === "string" ? item.trim() : ""))
+          .filter(Boolean);
+      }
+    } catch {
+      // Not JSON, parse as newline/comma separated text.
+    }
+
+    return raw
+      .split(/\r?\n|,/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
 
 export default function AboutPage({ initialData, courses }: { initialData: any, courses: Course[] }) {
   /* ✅ USE SERVER DATA INSTEAD OF FETCH */
@@ -34,6 +65,13 @@ export default function AboutPage({ initialData, courses }: { initialData: any, 
   const router = useRouter();
 
   const heroCircleText = hero.heading.split(" ");
+  const mediaBase = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
+  const heroImage =
+    typeof hero?.hero_image === "string" && hero.hero_image.trim()
+      ? hero.hero_image.startsWith("http")
+        ? hero.hero_image
+        : `${mediaBase}${hero.hero_image.startsWith("/") ? hero.hero_image : `/${hero.hero_image}`}`
+      : null;
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -43,15 +81,29 @@ export default function AboutPage({ initialData, courses }: { initialData: any, 
 
   const courseList = Array.isArray(courses) ? courses : [];
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   useEffect(() => {
     if (courseList.length > 0) {
       setSelectedCourse(courseList[0].id);
     }
   }, [courseList]);
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const selectedCourseObj = courseList.find(
     (c: any) => c.id === selectedCourse
   );
+  const serverDemoPoints = useMemo(() => {
+    if (Array.isArray(demo?.features)) {
+      return demo.features
+        .map((item: unknown) => (typeof item === "string" ? item.trim() : ""))
+        .filter(Boolean);
+    }
+    return [];
+  }, [demo?.features]);
+  const demoPoints = useMemo(() => normalizeStringList(demo?.features), [demo?.features]);
+  const visibleDemoPoints = isHydrated ? demoPoints : serverDemoPoints;
 
   return (
     <main className="bg-[#F4F5FC] pt-16">
@@ -71,14 +123,25 @@ export default function AboutPage({ initialData, courses }: { initialData: any, 
       <section className="bg-[#EAF5FF] px-6 md:px-12 py-16 md:py-20">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <div className="flex justify-center md:justify-start">
-            <div className="relative w-76 h-76 rounded-full bg-[#DCEBFF] grid place-items-center">
-              <div className="w-64 h-64 rounded-full bg-gradient-to-br from-[#3B82F6] to-[#0EA5E9] shadow-lg grid place-items-center">
-                <div className="text-center text-white font-extrabold leading-none">
-                  <div className="text-5xl">{heroCircleText[0] ?? ""}</div>
-                  <div className="text-5xl">{heroCircleText[1] ?? ""}</div>
+            {heroImage ? (
+              <div className="relative h-76 w-76 rounded-full bg-[#DCEBFF] p-5 shadow-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={heroImage}
+                  alt={hero.heading || "About Hero"}
+                  className="h-full w-full rounded-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="relative w-76 h-76 rounded-full bg-[#DCEBFF] grid place-items-center">
+                <div className="w-64 h-64 rounded-full bg-gradient-to-br from-[#3B82F6] to-[#0EA5E9] shadow-lg grid place-items-center">
+                  <div className="text-center text-white font-extrabold leading-none">
+                    <div className="text-5xl">{heroCircleText[0] ?? ""}</div>
+                    <div className="text-5xl">{heroCircleText[1] ?? ""}</div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div>
@@ -131,13 +194,13 @@ export default function AboutPage({ initialData, courses }: { initialData: any, 
       </section>
 
       {/* CTA */}
-      <section className="px-6 md:px-12 py-16 md:py-20 bg-gradient-to-r from-[#1F77D0] to-[#60A5FA]">
-        <div className="max-w-6xl mx-auto text-center text-white">
+      <section className="px-6 md:px-12 py-16 md:py-20 bg-gradient-to-r from-[#7DD3FC] to-[#BAE6FD]">
+        <div className="max-w-6xl mx-auto text-center text-black">
           <h2 className="text-3xl md:text-4xl font-extrabold">
             {cta.heading}
           </h2>
 
-          <p className="mt-4 text-white/90 max-w-2xl mx-auto">
+          <p className="mt-4 text-black/90 max-w-2xl mx-auto">
             {cta.subtitle}
           </p>
 
@@ -146,14 +209,14 @@ export default function AboutPage({ initialData, courses }: { initialData: any, 
               onClick={() => {
                 document.getElementById("demo-section")?.scrollIntoView({ behavior: "smooth" });
               }}
-              className="bg-white text-[#2C6ED5] font-semibold px-6 py-3 rounded-lg"
+              className="bg-white text-[#2C6ED5] font-semibold px-6 py-3 rounded-lg hover:bg-blue-100 transition-colors"
             >
               {cta.primary_button_text}
             </button>
 
             <button
               onClick={() => router.push("/contact")}
-              className="border border-white text-white font-semibold px-6 py-3 rounded-lg"
+                className="border border-black text-black font-semibold px-6 py-3 rounded-lg hover:bg-blue-300 transition-colors"
             >
               {cta.secondary_button_text}
             </button>
@@ -180,7 +243,7 @@ export default function AboutPage({ initialData, courses }: { initialData: any, 
             </h2>
 
             <ul className="mt-5 space-y-3 text-[#111B33]/75">
-                {demo.features.map((feature: string, i: number) => (
+                {visibleDemoPoints.map((feature: string, i: number) => (
                 <li key={i}>• {feature}</li>
                 ))}
             </ul>

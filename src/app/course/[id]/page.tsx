@@ -363,18 +363,6 @@ const handleSubmit=async()=>{
               </div>
             </div>
 
-            <div className="mt-8 flex items-baseline gap-3 flex-wrap">
-              <span className="text-sm text-white/70 uppercase tracking-wide font-semibold">
-                Fee
-              </span>
-              <span
-                className="text-3xl md:text-4xl font-extrabold"
-                style={{ color: gold }}
-              >
-                {course.price}
-              </span>
-            </div>
-
             <div className="mt-8 flex flex-wrap gap-4">
               <CounsellingModal
                 courseId={course.id}
