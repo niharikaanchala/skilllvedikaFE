@@ -76,6 +76,19 @@ export default async function RootLayout({
           <Navbar />
           {children}
           <Footer />
+          {/* WhatsApp Button */}
+          <a
+            href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${process.env.NEXT_PUBLIC_WHATSAPP_MESSAGE}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="fixed bottom-5 right-5 z-50"
+          >
+            <img
+              src="/whatsapp_icon.png"
+              alt="WhatsApp"
+              className="w-14 h-14 shadow-lg rounded-xl animate-bounce"
+            />
+          </a>
         </SiteBrandingProvider>
       </body>
     </html>

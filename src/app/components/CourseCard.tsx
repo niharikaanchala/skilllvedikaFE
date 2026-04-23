@@ -13,44 +13,44 @@ export default function CourseCard({ course }: { course: CourseApi }) {
       ? course.category.name
       : course.category_name || "Course";
 
-  const categorySlug =categoryLabel.toLowerCase().replace(/ /g, "-");
+  const categorySlug = categoryLabel.toLowerCase().replace(/ /g, "-");
 
   return (
     <Link
       href={`/courses/${categorySlug}/${course.slug}`}
-      className="group block overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:border-[#2f5fa8]/25 hover:shadow-md"
+      className="group block h-full overflow-hidden rounded-3xl border border-[#dbe8fb] bg-white shadow-[0_10px_32px_-24px_rgba(15,23,42,0.7)] transition duration-300 hover:-translate-y-1 hover:border-[#2f5fa8]/40 hover:shadow-[0_24px_40px_-28px_rgba(47,95,168,0.65)]"
     >
-      {/* Top line */}
-      <div className="h-1 bg-gradient-to-r from-[#2f5fa8] to-[#79a2d9]" />
+      <div className="h-1.5 bg-gradient-to-r from-[#2f5fa8] via-[#5b86ca] to-[#8cb2e6]" />
 
-      <div className="p-4">
-        {/* Category */}
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-[#2f5fa8]">
-          {categoryLabel}
-        </p>
-
-        {/* Title */}
-        <h3 className="mt-1 min-h-[2.5rem] line-clamp-2 text-sm font-bold leading-snug text-[#1a2d49] transition-colors group-hover:text-[#2f5fa8]">
-          {course.title}
-        </h3>
-
-        {/* Description */}
-        <p className="text-xs text-slate-600 mt-2 leading-relaxed line-clamp-2 min-h-[2.25rem]">
-          {clampText(course.description || "", 92)}
-        </p>
-
-        {/* Meta */}
-        <div className="mt-3 flex justify-between text-[11px] text-slate-500">
-          <span>⏱ {course.duration}</span>
-          <span className="text-amber-600 font-semibold">
+      <div className="flex h-full flex-col p-5">
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <span className="inline-flex max-w-[72%] truncate rounded-full bg-[#eff5ff] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#2f5fa8]">
+            {categoryLabel}
+          </span>
+          <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-700">
             ⭐ {course.rating?.toFixed(1) ?? "—"}
           </span>
         </div>
 
-        {/* Bottom */}
-        <div className="mt-4 flex items-center justify-end gap-3 border-t border-slate-100 pt-3">
-          <span className="text-[11px] font-semibold text-[#2f5fa8] underline-offset-2 group-hover:underline">
-            View course →
+        <h3 className="min-h-[2.75rem] line-clamp-2 text-[15px] font-bold leading-snug text-[#152744] transition-colors group-hover:text-[#2f5fa8]">
+          {course.title}
+        </h3>
+
+        <p className="mt-2 min-h-[2.5rem] line-clamp-2 text-xs leading-relaxed text-slate-600">
+          {clampText(course.description || "", 100)}
+        </p>
+
+        <div className="mt-4 flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2 text-[11px] text-slate-600">
+          <span className="font-medium">Duration</span>
+          <span className="font-semibold text-slate-700">{course.duration || "TBA"}</span>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#2f5fa8]">
+            View details
+          </span>
+          <span className="text-lg font-semibold text-[#2f5fa8] transition-transform duration-300 group-hover:translate-x-1">
+            →
           </span>
         </div>
       </div>
