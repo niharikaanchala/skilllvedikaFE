@@ -524,12 +524,11 @@ export default async function CategoryPage({ params }: PageProps) {
           {latestBlogs.length === 0 ? (
             <p className="text-slate-600 text-sm">No blog posts yet.</p>
           ) : (
-            <BlogsCarousel blogs={latestBlogs} />
+            <BlogsCarousel blogs={latestBlogs} showArrows={false} />
           )}
         </div>
       </section>
-      <section className="px-6 md:px-12 py-16 md:py-20 relative overflow-hidden bg-gradient-to-br from-[#eef5ff] via-[#f8fbff] to-[#e0f2fe]">
-  
+      <section className="px-6 md:px-12 py-16 md:py-20 relative overflow-hidden bg-gradient-to-br from-[#eff6ff] via-[#bfdbfe] to-[#60a5fa]">  
         {/* SOFT GLOW */}
         <div
           className="pointer-events-none absolute inset-0 opacity-40"

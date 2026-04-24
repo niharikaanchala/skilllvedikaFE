@@ -6,8 +6,10 @@ import type { BlogPostApi } from "@/app/lib/api";
 
 export default function BlogsCarousel({
   blogs,
+  showArrows = true,
 }: {
   blogs: BlogPostApi[];
+  showArrows?: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -27,26 +29,30 @@ export default function BlogsCarousel({
 
   return (
     <div className="relative">
-      {/* LEFT */}
-      <button
-        onClick={() => scroll("left")}
-        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-2"
-      >
-        <ChevronLeft className="w-5 h-5" />
-      </button>
+      {showArrows ? (
+        <>
+          {/* LEFT */}
+          <button
+            onClick={() => scroll("left")}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-2"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
 
-      {/* RIGHT */}
-      <button
-        onClick={() => scroll("right")}
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-2"
-      >
-        <ChevronRight className="w-5 h-5" />
-      </button>
+          {/* RIGHT */}
+          <button
+            onClick={() => scroll("right")}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-2"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </>
+      ) : null}
 
       {/* SCROLL */}
       <div
         ref={scrollRef}
-        className="flex gap-6 overflow-x-auto scroll-smooth no-scrollbar px-10 items-stretch"
+        className={`flex gap-6 overflow-x-auto scroll-smooth no-scrollbar items-stretch ${showArrows ? "px-10" : "px-0"}`}
       >
         {blogs.map((blog) => (
           <Link
