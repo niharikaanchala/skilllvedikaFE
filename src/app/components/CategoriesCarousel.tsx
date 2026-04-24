@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { CategoryApi } from "@/app/lib/api";
 
@@ -11,7 +11,20 @@ export default function CategoriesCarousel({
   categories: CategoryApi[];
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const shouldDisplayButtons = categories.length > 4;
+  const [canScroll, setCanScroll] = useState(false);
+
+  useEffect(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+
+    const updateScrollState = () => {
+      setCanScroll(node.scrollWidth > node.clientWidth + 1);
+    };
+
+    updateScrollState();
+    window.addEventListener("resize", updateScrollState);
+    return () => window.removeEventListener("resize", updateScrollState);
+  }, [categories.length]);
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -24,20 +37,20 @@ export default function CategoriesCarousel({
 
   return (
     <div className="relative">
-      {shouldDisplayButtons && (
+      {canScroll && (
         <button
           onClick={() => scroll("left")}
-          className="absolute -left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-lg backdrop-blur transition hover:border-[#2f5fa8]/40 hover:text-[#2f5fa8] md:flex"
+          className="absolute -left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-lg backdrop-blur transition hover:border-[#2f5fa8]/40 hover:text-[#2f5fa8]"
           aria-label="Scroll categories left"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
       )}
 
-      {shouldDisplayButtons && (
+      {canScroll && (
         <button
           onClick={() => scroll("right")}
-          className="absolute -right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-lg backdrop-blur transition hover:border-[#2f5fa8]/40 hover:text-[#2f5fa8] md:flex"
+          className="absolute -right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-lg backdrop-blur transition hover:border-[#2f5fa8]/40 hover:text-[#2f5fa8]"
           aria-label="Scroll categories right"
         >
           <ChevronRight className="h-5 w-5" />

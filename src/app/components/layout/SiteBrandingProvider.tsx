@@ -122,11 +122,13 @@ const SiteBrandingContext = createContext<SiteBrandingContextType>({
 });
 
 export function SiteBrandingProvider({
+  initialBranding,
   children,
 }: {
+  initialBranding?: SiteBranding;
   children: ReactNode;
 }) {
-  const [branding, setBranding] = useState<SiteBranding>({});
+  const [branding, setBranding] = useState<SiteBranding>(initialBranding ?? {});
 
   const fetchBranding = async () => {
     try {
@@ -174,6 +176,9 @@ export function SiteBrandingProvider({
   };
 
   useEffect(() => {
+    if (initialBranding && !brandingCache) {
+      brandingCache = initialBranding;
+    }
     if (brandingCache) {
       setBranding(brandingCache);
       return;
@@ -187,7 +192,7 @@ export function SiteBrandingProvider({
     }
     const timer = globalThis.setTimeout(run, 500);
     return () => globalThis.clearTimeout(timer);
-  }, []);
+  }, [initialBranding]);
 
   const refreshBranding = async () => {
     await fetchBranding();

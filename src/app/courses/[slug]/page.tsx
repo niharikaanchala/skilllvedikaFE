@@ -54,6 +54,41 @@ function normalizeCategoryKey(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function normalizeLooseKey(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function isMatchingBlogCategory(postCategory: string, category: CategoryApi) {
+  const postKey = normalizeCategoryKey(postCategory);
+  const postLoose = normalizeLooseKey(postCategory);
+  const slugKey = normalizeCategoryKey(category.slug);
+  const nameKey = normalizeCategoryKey(category.name);
+  const slugLoose = normalizeLooseKey(category.slug);
+  const nameLoose = normalizeLooseKey(category.name);
+
+  if (!postKey && !postLoose) return false;
+
+  if (
+    postKey === slugKey ||
+    postKey === nameKey ||
+    postLoose === slugLoose ||
+    postLoose === nameLoose
+  ) {
+    return true;
+  }
+
+  // Allow close variants such as "cybersecurity" <-> "cyber-security".
+  return (
+    postLoose.includes(slugLoose) ||
+    postLoose.includes(nameLoose) ||
+    slugLoose.includes(postLoose) ||
+    nameLoose.includes(postLoose)
+  );
+}
+
 /** Match URL slug to API category (exact slug, normalized slug/name, or static browse slug → API name). */
 function findCategoryBySlug(
   categories: CategoryApi[],
@@ -210,16 +245,13 @@ export default async function CategoryPage({ params }: PageProps) {
     })
     .sort((a, b) => b.rating - a.rating);
 
-  const categorySlugKey = normalizeCategoryKey(category.slug);
-  const categoryNameKey = normalizeCategoryKey(category.name);
-  const latestBlogs = blogPosts
-    .filter((post) => {
-      const postCategoryKey = normalizeCategoryKey(post.category ?? "");
-      return (
-        postCategoryKey === categorySlugKey || postCategoryKey === categoryNameKey
-      );
-    })
+  const categoryMatchedBlogs = blogPosts
+    .filter((post) => isMatchingBlogCategory(post.category ?? "", category))
     .slice(0, 3);
+  const latestBlogs =
+    categoryMatchedBlogs.length > 0
+      ? categoryMatchedBlogs
+      : blogPosts.slice(0, 3);
   const faqItems = buildCategoryFaqItems(categoryPageContent);
 
   const whyTitleRaw =

@@ -64,8 +64,9 @@ export default function BlogFilter({ articles }: Props) {
 
       <div className="grid md:grid-cols-3 gap-6">
         {filteredArticles.map((article) => (
-          <div
+          <Link
             key={article.slug}
+            href={`/blog/${article.slug}`}
             className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition overflow-hidden"
           >
             <div className="h-1 bg-gradient-to-r from-[#2C6ED5] to-[#14B8A6]" />
@@ -93,14 +94,11 @@ export default function BlogFilter({ articles }: Props) {
 
               <p className="mt-4 text-xs text-[#0C1A35]/50">{article.meta}</p>
 
-              <Link
-                href={`/blog/${article.slug}`}
-                className="inline-block mt-4 text-sm font-medium text-[#2C6ED5] hover:underline"
-              >
+              <span className="inline-block mt-4 text-sm font-medium text-[#2C6ED5] hover:underline">
                 Read More →
-              </Link>
+              </span>
             </div>
-          </div>
+          </Link>
         ))}
 
         {filteredArticles.length === 0 && (

@@ -39,6 +39,15 @@ export type SiteSettingApi = {
   google_analytics_id?: string | null;
 };
 
+export type SiteBrandingApi = {
+  brand_name?: string;
+  logo?: string | null;
+  facebook_url?: string | null;
+  instagram_url?: string | null;
+  linkedin_url?: string | null;
+  youtube_url?: string | null;
+};
+
 export type LegalPageApi = {
   id?: number;
   page_type?: "terms" | "privacy" | "disclaimer" | "editorial-policy";
@@ -553,6 +562,24 @@ export async function fetchSiteSettings(): Promise<SiteSettingApi[]> {
     return Array.isArray(data) ? (data as SiteSettingApi[]) : [];
   } catch {
     return [];
+  }
+}
+
+export async function fetchSiteBranding(): Promise<SiteBrandingApi | null> {
+  try {
+    const res = await fetch(apiUrl("/api/home/branding/"), { next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    const data = (await res.json()) as Partial<SiteBrandingApi>;
+    return {
+      brand_name: typeof data.brand_name === "string" ? data.brand_name : undefined,
+      logo: typeof data.logo === "string" ? data.logo : null,
+      facebook_url: typeof data.facebook_url === "string" ? data.facebook_url : null,
+      instagram_url: typeof data.instagram_url === "string" ? data.instagram_url : null,
+      linkedin_url: typeof data.linkedin_url === "string" ? data.linkedin_url : null,
+      youtube_url: typeof data.youtube_url === "string" ? data.youtube_url : null,
+    };
+  } catch {
+    return null;
   }
 }
 

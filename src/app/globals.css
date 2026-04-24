@@ -67,7 +67,7 @@ body {
 .blog-editor-content {
   font-family: var(--font-poppins), sans-serif;
   line-height: 1.7;
-  padding: 24px 40px;
+  padding: 0;
 }
 
 .blog-editor-content ul,
@@ -82,6 +82,7 @@ body {
 
 .blog-editor-content p {
   margin: 0.5rem 0;
+  text-align: justify;
 }
 
 .hero-categories {

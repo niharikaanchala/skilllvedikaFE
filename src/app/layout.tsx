@@ -5,7 +5,7 @@ import { SiteBrandingProvider } from "./components/layout/SiteBrandingProvider";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import Script from "next/script";
-import { fetchSiteSettings } from "./lib/api";
+import { fetchSiteBranding, fetchSiteSettings } from "./lib/api";
 import { buildOrganizationSchema, buildWebsiteSchema } from "./components/schemas/site-schema";
 
 const poppins = Poppins({
@@ -25,7 +25,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const settings = await fetchSiteSettings();
+  const [settings, branding] = await Promise.all([
+    fetchSiteSettings(),
+    fetchSiteBranding(),
+  ]);
   // console.log("settings: ", settings)
   const gaId =
     settings
@@ -72,7 +75,7 @@ export default async function RootLayout({
         ) : null}
       </head>
       <body>
-        <SiteBrandingProvider>
+        <SiteBrandingProvider initialBranding={branding ?? undefined}>
           <Navbar />
           {children}
           <Footer />

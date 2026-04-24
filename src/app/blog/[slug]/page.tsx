@@ -180,7 +180,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
             </p>
 
             {post.image_url ? (
-              <div className="mt-6 flex w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-2">
+              <div className="mt-6 w-full">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={post.image_url}
@@ -190,7 +190,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
                   decoding="async"
                   width={1200}
                   height={630}
-                  className="h-auto w-full rounded-lg object-cover"
+                  className="block h-auto w-full max-w-4xl rounded-lg object-cover"
                 />
               </div>
             ) : null}
