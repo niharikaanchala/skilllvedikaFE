@@ -17,6 +17,14 @@ body {
   font-family: var(--font-poppins), sans-serif;
 }
 
+html,
+body,
+*,
+*::before,
+*::after {
+  font-family: var(--font-poppins), sans-serif;
+}
+
 /* Keep Tailwind prose content on Poppins too */
 .prose,
 .prose :where(*) {
@@ -63,6 +71,47 @@ body {
   margin: 0.5rem 0;
 }
 
+/* Ensure heading levels stay visually distinct in editor even if selected text carries inline font-size */
+.ProseMirror h1 {
+  font-size: 2.25rem !important;
+  line-height: 2.5rem !important;
+  font-weight: 700 !important;
+}
+
+.ProseMirror h2 {
+  font-size: 1.875rem !important;
+  line-height: 2.25rem !important;
+  font-weight: 700 !important;
+}
+
+.ProseMirror h3 {
+  font-size: 1.5rem !important;
+  line-height: 2rem !important;
+  font-weight: 700 !important;
+}
+
+.ProseMirror h1 span,
+.ProseMirror h2 span,
+.ProseMirror h3 span {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+.ProseMirror h1 * {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+.ProseMirror h2 * {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+.ProseMirror h3 * {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
 /* Match blog render styling with TipTap editor content */
 .blog-editor-content {
   font-family: var(--font-poppins), sans-serif;
@@ -83,6 +132,61 @@ body {
 .blog-editor-content p {
   margin: 0.5rem 0;
   text-align: justify;
+}
+
+.blog-editor-content h1 {
+  font-size: 2.25rem !important;
+  line-height: 2.5rem !important;
+  font-weight: 700 !important;
+}
+
+.blog-editor-content h2 {
+  font-size: 1.875rem !important;
+  line-height: 2.25rem !important;
+  font-weight: 700 !important;
+}
+
+.blog-editor-content h3 {
+  font-size: 1.5rem !important;
+  line-height: 2rem !important;
+  font-weight: 700 !important;
+}
+
+.blog-editor-content h1 *,
+.blog-editor-content h2 *,
+.blog-editor-content h3 * {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+.blog-editor-content a {
+  color: #2563eb;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+
+.blog-editor-content a:hover {
+  color: #1d4ed8;
+}
+
+.blog-editor-content table {
+  width: 100%;
+  margin: 1rem 0;
+  border-collapse: collapse;
+  border: 1px solid #cbd5e1;
+}
+
+.blog-editor-content th,
+.blog-editor-content td {
+  border: 1px solid #cbd5e1;
+  padding: 0.5rem;
+  vertical-align: top;
+}
+
+.blog-editor-content th {
+  background-color: #f1f5f9;
+  font-weight: 600;
 }
 
 .hero-categories {

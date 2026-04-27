@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { fetchBlogs } from "@/app/lib/api";
 import { blogArticleMeta, formatBlogDate } from "@/app/lib/blog-utils";
-import { enforcePoppinsHtml } from "@/app/lib/html";
+import { enforceHeadingSizesInHtml, enforcePoppinsHtml, linkifyPlainUrlsInHtml } from "@/app/lib/html";
 import { buildBlogDetailSchema } from "@/app/components/schemas/blog-schema";
 import { buildBreadcrumbSchema } from "@/app/components/schemas/breadcrumb-schema";
 import { Home } from "lucide-react";
@@ -117,7 +117,6 @@ export default async function BlogDetailPage({ params }: PageProps) {
     { name: "Blog", url: "/blog" },
     { name: post.title, url: `/blog/${post.slug}` },
   ]);
-  const htmlContent = enforcePoppinsHtml(post.paragraphs?.map((p) => p.content).join("") ?? "");
   // const recommended = allBlogs
   // .filter(
   //   (b) =>
@@ -136,6 +135,9 @@ export default async function BlogDetailPage({ params }: PageProps) {
   const seenIds = new Map<string, number>();
   const renderedParagraphs = paragraphs.map((paragraph) =>
     injectH2IdsAndBuildToc(paragraph, seenIds, tocSections),
+  );
+  const htmlContent = enforcePoppinsHtml(
+    enforceHeadingSizesInHtml(linkifyPlainUrlsInHtml(renderedParagraphs.join(""))),
   );
 
   return (

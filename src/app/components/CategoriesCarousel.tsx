@@ -12,8 +12,11 @@ export default function CategoriesCarousel({
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScroll, setCanScroll] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+
     const node = scrollRef.current;
     if (!node) return;
 
@@ -37,7 +40,7 @@ export default function CategoriesCarousel({
 
   return (
     <div className="relative">
-      {canScroll && (
+      {isMounted && canScroll && (
         <button
           onClick={() => scroll("left")}
           className="absolute -left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-lg backdrop-blur transition hover:border-[#2f5fa8]/40 hover:text-[#2f5fa8]"
@@ -47,7 +50,7 @@ export default function CategoriesCarousel({
         </button>
       )}
 
-      {canScroll && (
+      {isMounted && canScroll && (
         <button
           onClick={() => scroll("right")}
           className="absolute -right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-lg backdrop-blur transition hover:border-[#2f5fa8]/40 hover:text-[#2f5fa8]"

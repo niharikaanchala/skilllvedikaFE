@@ -28,3 +28,51 @@ export function enforcePoppinsHtml(input: string | null | undefined): string {
 
   return cleaned;
 }
+
+export function linkifyPlainUrlsInHtml(input: string | null | undefined): string {
+  const html = String(input ?? "");
+  if (!html) return "";
+
+  // Split by tags and only replace URLs in text nodes.
+  const parts = html.split(/(<[^>]+>)/g);
+  const urlRegex = /((?:https?:\/\/|www\.)[^\s<]+)/gi;
+
+  return parts
+    .map((part) => {
+      if (!part || part.startsWith("<")) return part;
+
+      return part.replace(urlRegex, (rawUrl: string) => {
+        const href = rawUrl.startsWith("www.") ? `https://${rawUrl}` : rawUrl;
+        return `<a href="${href}" target="_blank" rel="noopener noreferrer">${rawUrl}</a>`;
+      });
+    })
+    .join("");
+}
+
+function mergeInlineStyle(existingAttrs: string, styleToAdd: string): string {
+  const styleAttrRegex = /\sstyle\s*=\s*["']([^"']*)["']/i;
+  const match = existingAttrs.match(styleAttrRegex);
+  if (!match) {
+    return `${existingAttrs} style="${styleToAdd}"`;
+  }
+
+  const existingStyle = match[1].trim();
+  const mergedStyle = existingStyle ? `${existingStyle}; ${styleToAdd}` : styleToAdd;
+  return existingAttrs.replace(styleAttrRegex, ` style="${mergedStyle}"`);
+}
+
+export function enforceHeadingSizesInHtml(input: string | null | undefined): string {
+  const html = String(input ?? "");
+  if (!html) return "";
+
+  return html
+    .replace(/<h1([^>]*)>/gi, (_m, attrs: string) =>
+      `<h1${mergeInlineStyle(attrs, "font-size: 32px; line-height: 1.25; font-weight: 700;")}>`,
+    )
+    .replace(/<h2([^>]*)>/gi, (_m, attrs: string) =>
+      `<h2${mergeInlineStyle(attrs, "font-size: 28px; line-height: 1.3; font-weight: 700;")}>`,
+    )
+    .replace(/<h3([^>]*)>/gi, (_m, attrs: string) =>
+      `<h3${mergeInlineStyle(attrs, "font-size: 24px; line-height: 1.35; font-weight: 700;")}>`,
+    );
+}
