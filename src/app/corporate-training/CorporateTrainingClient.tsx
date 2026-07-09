@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Home } from "lucide-react";
 import Link from "next/link";
+import FormLegalLinks from "@/app/components/legal/FormLegalLinks";
 
 /* TYPES (unchanged) */
 type Hero = {
@@ -388,7 +389,7 @@ export default function CorporateTrainingClient({ initialData, courses }: Props)
             </select>
             <label className="flex items-start gap-2 text-sm">
               <input type="checkbox" name="agreed_to_terms" />
-              I agree to the <a href="/terms" className="text-[#0066FF] underline">Terms & Conditions</a> and <a href="/privacy" className="text-[#0066FF] underline">Privacy Policy</a> *
+              <FormLegalLinks />
             </label>
             <button className="w-full rounded-lg bg-[#2f5fa8] py-3 text-white">
               {demo.button_text}

@@ -248,7 +248,7 @@ export default function Navbar() {
         {/* BUTTON (desktop) */}
         <div className="hidden lg:flex gap-4">
           <CounsellingModal
-            buttonText="Book Demo"
+            buttonText="Free Demo"
             className="rounded-md border border-[#2f5fa8] px-4 py-1.5 text-sm font-medium text-[#2f5fa8] transition hover:bg-[#2f5fa8] hover:text-white"
           />
         </div>
@@ -284,7 +284,7 @@ export default function Navbar() {
           {/* mobile CTA */}
           <div className="mt-4">
             <CounsellingModal
-              buttonText="Book Demo"
+              buttonText="Free Demo"
               className="w-full rounded-md border border-[#2f5fa8] px-4 py-2 text-sm font-medium text-[#2f5fa8] transition hover:bg-[#2f5fa8] hover:text-white"
             />
           </div>

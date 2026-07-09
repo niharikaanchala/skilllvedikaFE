@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { apiUrl } from "@/app/lib/api";
+import FormLegalLinks from "@/app/components/legal/FormLegalLinks";
 
 type Props = {
   courseId?: number;
@@ -284,15 +285,7 @@ export default function CounsellingModal({
                   className="mt-1"
                 />
                 <span>
-                  I agree to the{" "}
-                  <a href="/terms" className="text-[#0066FF] underline">
-                    Terms & Conditions
-                  </a>{" "}
-                  and{" "}
-                  <a href="/privacy" className="text-[#0066FF] underline">
-                    Privacy Policy
-                  </a>
-                  *
+                  <FormLegalLinks />
                 </span>
               </label>
 

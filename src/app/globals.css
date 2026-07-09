@@ -17,11 +17,21 @@ body {
   font-family: var(--font-poppins), sans-serif;
 }
 
-html,
-body,
-*,
-*::before,
-*::after {
+html, body {
+  font-family: var(--font-poppins), sans-serif;
+}
+
+html *,
+html *::before,
+html *::after {
+  font-family: var(--font-poppins), sans-serif;
+}
+
+/* Ensure native form controls use the same site-wide font */
+button,
+input,
+select,
+textarea {
   font-family: var(--font-poppins), sans-serif;
 }
 
@@ -79,20 +89,27 @@ body,
 }
 
 .ProseMirror h2 {
-  font-size: 1.875rem !important;
-  line-height: 2.25rem !important;
-  font-weight: 700 !important;
+  font-size: 1.5rem !important;
+  line-height: 2rem !important;
+  font-weight: 600 !important;
 }
 
 .ProseMirror h3 {
-  font-size: 1.5rem !important;
-  line-height: 2rem !important;
-  font-weight: 700 !important;
+  font-size: 1.25rem !important;
+  line-height: 1.75rem !important;
+  font-weight: 600 !important;
+}
+
+.ProseMirror h4 {
+  font-size: 1.125rem !important;
+  line-height: 1.625rem !important;
+  font-weight: 600 !important;
 }
 
 .ProseMirror h1 span,
 .ProseMirror h2 span,
-.ProseMirror h3 span {
+.ProseMirror h3 span,
+.ProseMirror h4 span {
   font-size: inherit !important;
   line-height: inherit !important;
 }
@@ -108,6 +125,11 @@ body,
 }
 
 .ProseMirror h3 * {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+.ProseMirror h4 * {
   font-size: inherit !important;
   line-height: inherit !important;
 }
@@ -141,20 +163,27 @@ body,
 }
 
 .blog-editor-content h2 {
-  font-size: 1.875rem !important;
-  line-height: 2.25rem !important;
-  font-weight: 700 !important;
+  font-size: 1.5rem !important;
+  line-height: 2rem !important;
+  font-weight: 600 !important;
 }
 
 .blog-editor-content h3 {
-  font-size: 1.5rem !important;
-  line-height: 2rem !important;
-  font-weight: 700 !important;
+  font-size: 1.25rem !important;
+  line-height: 1.75rem !important;
+  font-weight: 600 !important;
+}
+
+.blog-editor-content h4 {
+  font-size: 1.125rem !important;
+  line-height: 1.625rem !important;
+  font-weight: 600 !important;
 }
 
 .blog-editor-content h1 *,
 .blog-editor-content h2 *,
-.blog-editor-content h3 * {
+.blog-editor-content h3 *,
+.blog-editor-content h4 * {
   font-size: inherit !important;
   line-height: inherit !important;
 }
@@ -208,5 +237,33 @@ body,
   }
   to {
     transform: translateX(-50%);
+  }
+}
+
+
+
+ .hero-marquee {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  width: max-content;
+  animation: heroMarquee 30s linear infinite;
+}
+
+.hero-marquee:hover {
+  animation-play-state: paused;
+}
+
+.hero-marquee span {
+  flex-shrink: 0;
+}
+
+@keyframes heroMarquee {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-100%);
   }
 }

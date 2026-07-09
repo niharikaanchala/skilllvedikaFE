@@ -1,6 +1,12 @@
 import type { HomeHeroApi } from "@/app/lib/home-page";
 import CounsellingModal from "@/app/course/[id]/CounsellingModal";
-import { fetchCategories, fetchCourses, type CategoryApi, type CourseApi } from "@/app/lib/api";
+import {
+  fetchCategories,
+  fetchCourses,
+  fetchHomeCourseScrollingItems,
+  type CategoryApi,
+  type CourseApi,
+} from "@/app/lib/api";
 import { redirect } from "next/navigation";
 
 type Props = {
@@ -149,10 +155,13 @@ export default async function HeroSection({ data }: Props) {
   const movingTags = categories.length > 0
     ? categories.map((category) => category.name)
     : tags;
-  const marqueeTags = movingTags.length > 0 ? [...movingTags, ...movingTags] : [];
+  const homeScrollingItems = await fetchHomeCourseScrollingItems().catch(() => [] as string[]);
+  const marqueeTags =
+   movingTags.length > 0 ? [...movingTags, ...movingTags] : [];
+  const bottomHeroScrollingItems = homeScrollingItems;
 
   return (
-    <section className="border-b border-slate-200/60 bg-[#eaf0f7] pt-12 md:pt-16">
+    <section className="relative overflow-hidden border-b border-slate-200/60 bg-[#eaf0f7] pt-12 pb-24 md:pt-16 md:pb-28">
       <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-6 px-4 py-8 sm:px-6 md:grid-cols-[1.15fr_0.85fr] md:gap-6 md:px-10 md:py-12">
       <div className="w-full max-w-none">
         <h1 className="text-2xl font-extrabold leading-[1.15] tracking-tight text-[#152c4e] sm:text-3xl md:text-5xl">
@@ -247,6 +256,20 @@ export default async function HeroSection({ data }: Props) {
         </div>
       ) : null}
       </div>
+      {bottomHeroScrollingItems.length > 0 ? (
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden bg-[#ffcc00] border-t-2 border-yellow-400 py-4 shadow-lg">
+          <div className="hero-marquee w-max">
+            {[...bottomHeroScrollingItems, ...bottomHeroScrollingItems, ...bottomHeroScrollingItems, ...bottomHeroScrollingItems].map((item, index) => (
+              <span
+                key={`${item}-${index}`}
+                className="mx-10 inline-flex items-center whitespace-nowrap text-xl md:text-2xl font-bold text-[#0a2540]"
+              >
+                ⭐ {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

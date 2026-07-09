@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Home } from "lucide-react";
 import { apiUrl } from "@/app/lib/api";
+import FormLegalLinks from "@/app/components/legal/FormLegalLinks";
 
 const EXPERIENCE_OPTIONS = ["0-1 years", "1-3 years", "3-5 years", "5-8 years", "8+ years"];
 const SKILL_SUGGESTIONS = ["React", "Next.js", "Python", "Django", "JavaScript", "TypeScript", "Node.js", "SQL"];
@@ -260,7 +261,7 @@ export default function InstructorClient({ initialData, courses }: Props) {
             <label className="flex items-start gap-2 text-sm">
               <input type="checkbox" name="agreed_to_terms" checked={formData.agreed_to_terms} onChange={onFieldChange} className="mt-1" />
               <span>
-                I agree to the <a href="/terms" className="text-[#2C6ED5] underline">Terms & Conditions</a> and <a href="/privacy" className="text-[#2C6ED5] underline">Privacy Policy</a> *
+                <FormLegalLinks linkClassName="text-[#2C6ED5] underline" />
               </span>
             </label>
 

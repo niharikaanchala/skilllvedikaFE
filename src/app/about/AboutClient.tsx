@@ -4,6 +4,7 @@ import { Home } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import FormLegalLinks from "@/app/components/legal/FormLegalLinks";
 
 /* SAME TYPES (unchanged) */
 
@@ -323,8 +324,11 @@ export default function AboutPage({ initialData, courses }: { initialData: any, 
                 <label className="flex items-start gap-2 text-sm text-[#111B33]/70">
                 <input type="checkbox" className="mt-1" />
                 <span>
-                    I agree with the{" "}
-                    <span className="text-[#2C6ED5]">Terms & Conditions</span>.
+                    <FormLegalLinks
+                      linkClassName="text-[#2C6ED5] underline"
+                      showPrivacy={false}
+                      agreeText="I agree with the"
+                    />
                 </span>
                 </label>
 

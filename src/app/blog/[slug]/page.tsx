@@ -176,7 +176,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
         <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-[minmax(0,1fr)_260px] lg:grid-cols-[minmax(0,1fr)_280px]">
           <article>
             <p className="text-xs font-semibold uppercase tracking-wider text-[#2f5fa8]">{post.category}</p>
-            <h1 className="mt-3 text-4xl font-extrabold leading-tight text-[#1a2d49] md:text-5xl">{post.title}</h1>
+            <h1 className="mt-3 text-3xl font-bold leading-tight text-[#1a2d49] md:text-4xl">{post.title}</h1>
             <p className="mt-3 text-sm text-slate-500">
               {post.author} · {formatBlogDate(post.date)} · {post.read_time}
             </p>

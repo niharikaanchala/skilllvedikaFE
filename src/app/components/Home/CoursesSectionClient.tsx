@@ -22,6 +22,28 @@ function enrollmentFromId(id: number): number {
   return 120 + (Math.abs(id * 17 + 31) % 2880);
 }
 
+function slugifyCategory(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function courseHref(c: CourseApi): string {
+  const categorySlug =
+    typeof c.category === "object" && c.category !== null
+      ? (c.category.slug?.trim() || slugifyCategory(c.category.name ?? ""))
+      : slugifyCategory(c.category_name ?? "");
+
+  if (categorySlug && c.slug) {
+    return `/courses/${categorySlug}/${c.slug}`;
+  }
+
+  // Keep legacy path as a fallback when category data is incomplete.
+  return `/course/${c.slug}`;
+}
+
 function StarRating({ rating }: { rating: number }) {
   const filled = Math.min(5, Math.max(0, Math.round(rating)));
   return (
@@ -42,7 +64,7 @@ function CourseCard({ c }: { c: CourseApi }) {
 
   return (
     <Link
-      href={`/course/${c.slug}`}
+      href={courseHref(c)}
       className="group flex flex-col h-full rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 p-5"
     >
       {/* Title */}

@@ -19,6 +19,7 @@ import CategoriesCarousel from "../components/CategoriesCarousel";
 import CoursesCarousel from "../components/CoursesCarousel";
 import CourseCard from "../components/CourseCard";
 import BlogsCarousel from "../components/BlogsCarousel";
+import { enforcePoppinsHtml } from "../lib/html";
 function clampText(text: string, maxLen: number) {
   if (!text) return "";
   return text.length <= maxLen ? text : text.slice(0, maxLen - 1) + "…";
@@ -379,7 +380,10 @@ export default async function CoursesPage({
                       <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#2f5fa8]/12 text-xs font-bold text-[#2f5fa8] ring-1 ring-[#2f5fa8]/20">
                         ✓
                       </span>
-                      <span className="leading-relaxed pt-0.5">{item}</span>
+                      <span
+                        className="leading-relaxed pt-0.5 prose prose-sm max-w-none prose-p:my-0 prose-ul:my-0 prose-ol:my-0"
+                        dangerouslySetInnerHTML={{ __html: enforcePoppinsHtml(String(item ?? "")) }}
+                      />
                     </li>
                   ))
                 : null}
@@ -389,9 +393,9 @@ export default async function CoursesPage({
       </section>
 
       {/* Blogs */}
-      <section className="px-6 md:px-12 py-14 md:py-16 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="mb-10 text-xl font-bold text-[#1a2d49]">
+      <section className="px-6 md:px-12 py-14 md:py-16 bg-white ">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="mb-10 text-xl font-bold text-[#1a2d49] md:text-3xl">
             Recommended Articles
           </h2>
           {blogs?.length ? (

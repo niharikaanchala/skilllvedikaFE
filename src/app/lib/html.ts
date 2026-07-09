@@ -70,9 +70,12 @@ export function enforceHeadingSizesInHtml(input: string | null | undefined): str
       `<h1${mergeInlineStyle(attrs, "font-size: 32px; line-height: 1.25; font-weight: 700;")}>`,
     )
     .replace(/<h2([^>]*)>/gi, (_m, attrs: string) =>
-      `<h2${mergeInlineStyle(attrs, "font-size: 28px; line-height: 1.3; font-weight: 700;")}>`,
+      `<h2${mergeInlineStyle(attrs, "font-size: 24px; line-height: 1.35; font-weight: 600;")}>`,
     )
     .replace(/<h3([^>]*)>/gi, (_m, attrs: string) =>
-      `<h3${mergeInlineStyle(attrs, "font-size: 24px; line-height: 1.35; font-weight: 700;")}>`,
+      `<h3${mergeInlineStyle(attrs, "font-size: 20px; line-height: 1.4; font-weight: 600;")}>`,
+    )
+    .replace(/<h4([^>]*)>/gi, (_m, attrs: string) =>
+      `<h4${mergeInlineStyle(attrs, "font-size: 18px; line-height: 1.45; font-weight: 600;")}>`,
     );
 }

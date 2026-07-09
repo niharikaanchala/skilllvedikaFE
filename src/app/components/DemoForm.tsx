@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import FormLegalLinks from "@/app/components/legal/FormLegalLinks";
 
 export default function DemoForm({ demo, courses }: any) {
   const courseList = Array.isArray(courses) ? courses : [];
@@ -139,15 +140,7 @@ const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/on-job-supp
           onChange={(e) => setForm({ ...form, agreed_to_terms: e.target.checked })}
         />
          <span>
-                  I agree to the{" "}
-                  <a href="/terms" className="text-[#0066FF] underline">
-                    Terms & Conditions
-                  </a>{" "}
-                  and{" "}
-                  <a href="/privacy" className="text-[#0066FF] underline">
-                    Privacy Policy
-                  </a>
-                  *
+                  <FormLegalLinks />
                 </span>
       </label>
 

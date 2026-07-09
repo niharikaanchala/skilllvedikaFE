@@ -250,6 +250,19 @@ export default async function CourseDetailPage({ params }: PageProps) {
   const batchesHeading = sectionMeta?.batches_heading?.trim() || "Upcoming Batches";
   const blogsHeading = sectionMeta?.blogs_heading?.trim() || "Recommended Reads";
   const faqsHeading = sectionMeta?.faqs_heading?.trim() || "FAQs";
+
+  // Optional marquee/scrolling content shown at the bottom of the course hero.
+  const scrollingEnabled = Boolean(sectionMeta?.scrolling_enabled);
+  const scrollingLocation = sectionMeta?.scrolling_location ?? "course";
+  const scrollingItems = String(sectionMeta?.scrolling_items ?? "")
+    .replace(/,/g, "\n")
+    .split(/\n+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const shouldShowScrolling =
+    scrollingEnabled &&
+    scrollingItems.length > 0 &&
+    (scrollingLocation === "course" || scrollingLocation === "both");
   const courseSchema = buildCourseDetailSchema(course);
   const breadcrumbSchema = buildBreadcrumbSchema([
     { name: "Home", url: "/" },
@@ -331,7 +344,7 @@ const handleSubmit=async()=>{
 
       {/* Hero — deep navy + cyan accents (reference UI) */}
       <section
-        className="relative overflow-hidden text-white px-6 md:px-12 py-14 md:py-20"
+        className="relative overflow-hidden text-white px-6 md:px-12 pt-14 md:pt-20 pb-28"
         style={{
           background: `linear-gradient(135deg, ${navy.deep} 0%, ${navy.mid} 45%, #0f3460 100%)`,
         }}
@@ -447,7 +460,7 @@ const handleSubmit=async()=>{
                   background: `linear-gradient(90deg, ${cyan} 0%, #0090c9 100%)`,
                 }}
               >
-                Get Free Counselling
+                Get Free Demo
               </button>
             </form>
 
@@ -456,6 +469,22 @@ const handleSubmit=async()=>{
             </p>
           </div>
         </div>
+        {shouldShowScrolling ? (
+          <div className="absolute bottom-0 left-0 w-full overflow-hidden bg-[#ffcc00] border-t-2 border-yellow-400 py-4 shadow-lg">
+            <div className="hero-marquee w-max">
+              {[...scrollingItems, ...scrollingItems, ...scrollingItems, ...scrollingItems].map((item, index) => (
+                <span
+                  key={`${item}-${index}`}
+                  className="mx-10 inline-flex items-center whitespace-nowrap text-xl md:text-2xl font-bold text-[#0a2540]"
+                >
+                  ⭐ {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        
       </section>
 
       <section className="max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-16 space-y-14 md:space-y-16">
@@ -642,7 +671,7 @@ const handleSubmit=async()=>{
               <CounsellingModal
                 courseId={course.id}
                 courseTitle={course.title}
-                buttonText="Get Free Counselling"
+                buttonText="Get Free Demo"
                 className="inline-flex items-center justify-center font-bold px-8 py-3.5 rounded-xl text-[#0a2540] shadow-lg transition hover:brightness-110 bg-[#ffcc00]"
               />
             </div>

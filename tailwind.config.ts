@@ -12,6 +12,9 @@ export default {
         primary: "#0F8F7A",
         dark: "#0F172A",
       },
+      fontFamily: {
+        sans: ["var(--font-poppins)", "sans-serif"],
+      },
     },
   },
   plugins: [typography],

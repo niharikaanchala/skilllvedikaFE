@@ -1,6 +1,7 @@
     "use client"
 
     import { useState } from "react"
+    import FormLegalLinks from "@/app/components/legal/FormLegalLinks"
 
     const SidebarForm =({course}: {course: any})=>{
         const [formData, setFormData] = useState({
@@ -106,15 +107,7 @@
                   className="mt-1"
                 />
                 <span>
-                  I agree to the{" "}
-                  <a href="/terms" className="text-[#0066FF] underline">
-                    Terms & Conditions
-                  </a>{" "}
-                  and{" "}
-                  <a href="/privacy" className="text-[#0066FF] underline">
-                    Privacy Policy
-                  </a>
-                  *
+                  <FormLegalLinks />
                 </span>
               </label>
 

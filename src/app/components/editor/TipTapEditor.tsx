@@ -51,7 +51,8 @@ interface TipTapEditorProps {
 
 const CLOUD_NAME = "dhy0krkef";
 const UPLOAD_PRESET = "preptara";
-const FONT_FAMILY = "Poppins";
+const FONT_FAMILY = "var(--font-poppins)";
+const FONT_FAMILY_LABEL = "Poppins";
 const DEFAULT_FONT_SIZE = "15px";
 const HEADING_FONT_SIZES: Record<"h1" | "h2" | "h3" | "h4", string> = {
   h1: "28px",
@@ -217,9 +218,8 @@ export default function TipTapEditor({
     editorProps: {
       attributes: {
         class:
-          "min-h-[260px] prose prose-slate max-w-none focus:outline-none",
+          "min-h-[260px] prose prose-slate max-w-none focus:outline-none font-sans",
         style: `
-          font-family: ${FONT_FAMILY}, sans-serif;
           padding: 24px 40px;
         `,
       },
@@ -460,7 +460,7 @@ export default function TipTapEditor({
           value={FONT_FAMILY}
           onChange={() => editor.chain().focus().setFontFamily(FONT_FAMILY).run()}
         >
-          <option value={FONT_FAMILY}>Poppins</option>
+          <option value={FONT_FAMILY}>{FONT_FAMILY_LABEL}</option>
         </select>
 
         <select

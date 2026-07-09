@@ -37,6 +37,8 @@ export type CategoryApi = {
 export type SiteSettingApi = {
   id: number;
   google_analytics_id?: string | null;
+  whatsapp_number?: string | null;
+  whatsapp_message?: string | null;
 };
 
 export type SiteBrandingApi = {
@@ -141,6 +143,11 @@ export type CourseSectionMetaApi = {
   batches_heading?: string;
   blogs_heading?: string;
   faqs_heading?: string;
+
+  // Scrolling marquee (hero bottom)
+  scrolling_enabled?: boolean;
+  scrolling_location?: "course" | "home" | "both";
+  scrolling_items?: string;
 };
 
 async function fetchJsonOptionalArray<T>(path: string): Promise<T[]> {
@@ -287,6 +294,19 @@ export async function fetchCourseSectionMeta(courseRef: number | string): Promis
     return res.json();
   } catch {
     return null;
+  }
+}
+
+export async function fetchHomeCourseScrollingItems(): Promise<string[]> {
+  try {
+    const res = await fetch(apiUrl("/api/course-details/home-scrolling/"), {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data.map((x) => String(x)) : [];
+  } catch {
+    return [];
   }
 }
 
@@ -445,7 +465,9 @@ export async function fetchCoursesPageContent(): Promise<CoursesPageContentApi |
     }
 
     const whyRaw = raw.whyPoints ?? raw.why_points;
-    let whyPoints: CoursesPageContentApi["whyPoints"] = Array.isArray(whyRaw) ? whyRaw : [];
+    let whyPoints: CoursesPageContentApi["whyPoints"] = Array.isArray(whyRaw)
+      ? whyRaw.filter((x): x is string => typeof x === "string")
+      : [];
     let whyPointsHtml = "";
     const whyPointsRaw = whyRaw as unknown;
     if (!Array.isArray(whyPointsRaw) && typeof whyPointsRaw === "string") {
@@ -459,15 +481,6 @@ export async function fetchCoursesPageContent(): Promise<CoursesPageContentApi |
           .split("\n")
           .map((x: string) => x.trim())
           .filter(Boolean);
-      }
-    } else if (Array.isArray(whyPointsRaw)) {
-      const joined = whyPointsRaw
-        .filter((x): x is string => typeof x === "string")
-        .join("\n")
-        .trim();
-      if (/<[^>]+>/.test(joined)) {
-        whyPointsHtml = joined;
-        whyPoints = [];
       }
     }
 
