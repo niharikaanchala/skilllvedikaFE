@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { apiUrl } from "@/app/lib/api";
 import FormLegalLinks from "@/app/components/legal/FormLegalLinks";
+import {
+  OTHER_COURSE_VALUE,
+  SearchableCourseSelect,
+} from "@/app/components/CourseLeadForm";
 
 type Props = {
   courseId?: number;
@@ -17,6 +21,7 @@ type LeadForm = {
   email: string;
   phone: string;
   selected_course: string;
+  other_course: string;
   agreed_to_terms: boolean;
 };
 
@@ -33,6 +38,7 @@ const initialForm: LeadForm = {
   email: "",
   phone: "",
   selected_course: "",
+  other_course: "",
   agreed_to_terms: false,
 };
 
@@ -122,6 +128,19 @@ export default function CounsellingModal({
     };
   }, [open]);
 
+  const selectableCourses = useMemo(() => {
+    const opts: { value: string; label: string }[] = [];
+    if (courseTitle && courseTitle !== "General Counselling") {
+      opts.push({ value: courseTitle, label: courseTitle });
+    }
+    courseOptions
+      .filter((course) => course.title !== courseTitle)
+      .forEach((course) => {
+        opts.push({ value: course.title, label: course.title });
+      });
+    return opts;
+  }, [courseOptions, courseTitle]);
+
   const onChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
@@ -142,8 +161,19 @@ export default function CounsellingModal({
       setError("Please agree to Terms & Conditions and Privacy Policy.");
       return;
     }
+    const isOther = form.selected_course === OTHER_COURSE_VALUE;
+    const courseLabel = isOther
+      ? form.other_course.trim() || "Other"
+      : form.selected_course.trim();
+    if (isOther && !form.other_course.trim()) {
+      setError("Please specify the course.");
+      return;
+    }
     setSubmitting(true);
     try {
+      const matchedCourse = courseOptions.find(
+        (c) => c.title === form.selected_course,
+      );
       const res = await fetch(apiUrl("/api/courses/counselling/submit/"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -154,12 +184,13 @@ export default function CounsellingModal({
           years_of_experience: "",
           skills: "",
           agreed_to_terms: form.agreed_to_terms,
-          message: form.selected_course.trim()
-            ? `Interested course: ${form.selected_course.trim()}`
-            : "",
+          message: courseLabel ? `Interested course: ${courseLabel}` : "",
           email: form.email,
           phone: form.phone,
-          course: courseId ?? null,
+          course: isOther
+            ? null
+            : courseId ??
+              (typeof matchedCourse?.id === "number" ? matchedCourse.id : null),
         }),
       });
       if (!res.ok) {
@@ -180,7 +211,7 @@ export default function CounsellingModal({
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={className}>
+      <button type="button" onClick={() => setOpen(true)} className={`cursor-pointer ${className}`}>
         {buttonText}
       </button>
 
@@ -255,26 +286,32 @@ export default function CounsellingModal({
               </div>
               <div>
                 <label className="text-base font-semibold text-[#334155]">Select Courses</label>
-                <select
-                  name="selected_course"
-                  value={form.selected_course}
-                  onChange={onChange}
-                  className="mt-2 w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0f6ecd] focus:border-transparent"
-                >
-                  <option value="">
-                    {coursesLoading ? "Loading courses..." : "Select a course"}
-                  </option>
-                  {courseTitle && courseTitle !== "General Counselling" ? (
-                    <option value={courseTitle}>{courseTitle}</option>
-                  ) : null}
-                  {courseOptions
-                    .filter((course) => course.title !== courseTitle)
-                    .map((course) => (
-                      <option key={course.id} value={course.title}>
-                        {course.title}
-                      </option>
-                    ))}
-                </select>
+                <div className="mt-2">
+                  <SearchableCourseSelect
+                    name="selected_course"
+                    value={form.selected_course}
+                    onChange={(v) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        selected_course: v,
+                        other_course: v === OTHER_COURSE_VALUE ? prev.other_course : "",
+                      }))
+                    }
+                    loading={coursesLoading}
+                    placeholder={coursesLoading ? "Loading courses..." : "Select a course"}
+                    className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#0f6ecd] focus:border-transparent"
+                    options={selectableCourses}
+                  />
+                </div>
+                {form.selected_course === OTHER_COURSE_VALUE ? (
+                  <input
+                    name="other_course"
+                    value={form.other_course}
+                    onChange={onChange}
+                    placeholder="Please specify the course"
+                    className="mt-2 w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0f6ecd] focus:border-transparent"
+                  />
+                ) : null}
               </div>
               <label className="flex items-start gap-2 text-sm">
                 <input

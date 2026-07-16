@@ -53,7 +53,7 @@ export default async function CoursesSection() {
     );
   }
 
-  const { trending, popular, free } = splitCoursesForHomeTabs(courses);
+  const { trending, popular } = splitCoursesForHomeTabs(courses);
 
-  return <CoursesSectionClient trending={trending} popular={popular} free={free} />;
+  return <CoursesSectionClient trending={trending} popular={popular} />;
 }

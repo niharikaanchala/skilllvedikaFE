@@ -4,7 +4,7 @@ import { Home } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import FormLegalLinks from "@/app/components/legal/FormLegalLinks";
+import CourseLeadForm from "@/app/components/CourseLeadForm";
 
 /* SAME TYPES (unchanged) */
 
@@ -48,53 +48,22 @@ function normalizeStringList(value: unknown): string[] {
 export default function AboutPage({ initialData, courses }: { initialData: any, courses: Course[] }) {
   /* ✅ USE SERVER DATA INSTEAD OF FETCH */
   const data = initialData;
-
-  if (!data)
-    return <p className="text-center mt-20">Content unavailable.</p>;
-
-  const hero = data.hero;
-  const valuesSection = data.values_section;
-  const values = (data.values || []).sort(
-    (a: any, b: any) => (a.order ?? 9999) - (b.order ?? 9999)
-  );
-  const cta = data.cta;
-  const demo = data.demo;
-
-  if (!hero || !valuesSection || !cta || !demo) {
-    return <p className="text-center mt-20">Content unavailable.</p>;
-  }
   const router = useRouter();
-
-  const heroCircleText = hero.heading.split(" ");
-  const mediaBase = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
-  const heroImage =
-    typeof hero?.hero_image === "string" && hero.hero_image.trim()
-      ? hero.hero_image.startsWith("http")
-        ? hero.hero_image
-        : `${mediaBase}${hero.hero_image.startsWith("/") ? hero.hero_image : `/${hero.hero_image}`}`
-      : null;
-  const [formData, setFormData] = useState({
-    full_name: "",
-    email: "",
-    phone: "",
-    agree: false,
-  });
-
   const courseList = Array.isArray(courses) ? courses : [];
-  const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
-  useEffect(() => {
-    if (courseList.length > 0) {
-      setSelectedCourse(courseList[0].id);
-    }
-  }, [courseList]);
+
   useEffect(() => {
     setIsHydrated(true);
   }, []);
 
-  const selectedCourseObj = courseList.find(
-    (c: any) => c.id === selectedCourse
+  const hero = data?.hero;
+  const valuesSection = data?.values_section;
+  const values = (data?.values || []).sort(
+    (a: any, b: any) => (a.order ?? 9999) - (b.order ?? 9999)
   );
+  const cta = data?.cta;
+  const demo = data?.demo;
+
   const serverDemoPoints = useMemo(() => {
     if (Array.isArray(demo?.features)) {
       return demo.features
@@ -105,6 +74,21 @@ export default function AboutPage({ initialData, courses }: { initialData: any, 
   }, [demo?.features]);
   const demoPoints = useMemo(() => normalizeStringList(demo?.features), [demo?.features]);
   const visibleDemoPoints = isHydrated ? demoPoints : serverDemoPoints;
+
+  if (!data)
+    return <p className="text-center mt-20">Content unavailable.</p>;
+
+  if (!hero || !valuesSection || !cta || !demo) {
+    return <p className="text-center mt-20">Content unavailable.</p>;
+  }
+  const heroCircleText = hero.heading.split(" ");
+  const mediaBase = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
+  const heroImage =
+    typeof hero?.hero_image === "string" && hero.hero_image.trim()
+      ? hero.hero_image.startsWith("http")
+        ? hero.hero_image
+        : `${mediaBase}${hero.hero_image.startsWith("/") ? hero.hero_image : `/${hero.hero_image}`}`
+      : null;
 
   return (
     <main className="bg-[#F4F5FC] pt-16">
@@ -260,122 +244,21 @@ export default function AboutPage({ initialData, courses }: { initialData: any, 
                 {demo.form_subtitle}
             </p>
 
-            <form className="mt-6 space-y-4">
-                <div>
-                <label className="text-sm font-medium text-[#111B33]">
-                    Full Name
-                </label>
-                <input
-                    type="text"
-                    placeholder="Enter your full name"
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2C6ED5]"
+            <CourseLeadForm
+                  courses={courseList.map((course) => ({
+                    id: course.id,
+                    title: course.title,
+                  }))}
+                  submitLabel={demo.submit_button_text || "Submit"}
+                  className="mt-6 space-y-4"
+                  inputClassName="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2C6ED5]"
+                  selectClassName="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2C6ED5]"
+                  buttonClassName="w-full rounded-md bg-gradient-to-r from-[#2C6ED5] to-[#14B8A6] py-3 text-white font-semibold disabled:opacity-70"
                 />
-                </div>
 
-                <div>
-                <label className="text-sm font-medium text-[#111B33]">
-                    Email Address
-                </label>
-                <input
-                    type="email"
-                    placeholder="you@example.com"
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2C6ED5]"
-                />
-                </div>
-
-                <div>
-                <label className="text-sm font-medium text-[#111B33]">
-                    Phone Number
-                </label>
-                <div className="mt-1 flex gap-2">
-                    <span className="inline-flex items-center rounded-md border border-slate-300 bg-slate-50 px-3 text-sm">
-                    +91
-                    </span>
-                    <input
-                    type="text"
-                    placeholder="Enter your phone number"
-                    className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2C6ED5]"
-                    />
-                </div>
-                </div>
-
-                <div>
-                <label className="text-sm font-medium text-[#111B33]">
-                    * Select Courses
-                </label>
-                <select
-                  value={selectedCourse ?? ""}
-                  onChange={(e) =>
-                    setSelectedCourse(Number(e.target.value))
-                  }
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2C6ED5]"
-                >
-                  <option value="">Select a course</option>
-
-                  {courseList.map((course: any) => (
-                    <option key={course.id} value={course.id}>
-                      {course.title}
-                      {course.category_name ? ` (${course.category_name})` : ""}
-                    </option>
-                  ))}
-                </select>
-                </div>
-
-                <label className="flex items-start gap-2 text-sm text-[#111B33]/70">
-                <input type="checkbox" className="mt-1" />
-                <span>
-                    <FormLegalLinks
-                      linkClassName="text-[#2C6ED5] underline"
-                      showPrivacy={false}
-                      agreeText="I agree with the"
-                    />
-                </span>
-                </label>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    console.log("Form submitted:", formData);
-
-                    // API CALL HERE
-                    fetch("http://127.0.0.1:8000/api/courses/counselling/submit/", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        first_name: formData.full_name.trim().split(/\s+/).slice(0, 1).join(""),
-                        last_name: formData.full_name.trim().split(/\s+/).slice(1).join(" "),
-                        full_name: formData.full_name.trim(),
-                        agreed_to_terms: formData.agree,
-                        message: selectedCourseObj?.title.trim()
-                          ? `Interested course: ${selectedCourseObj?.title.trim()}`
-                          : "",
-                        email: formData.email,
-                        phone: formData.phone,
-                        course: selectedCourseObj?.id ?? null,
-                      }),
-                    })
-                      .then((res) => res.json())
-                      .then((data) => {
-                        alert("Submitted successfully!");
-                        console.log(data);
-                      })
-                      .catch((err) => {
-                        console.error(err);
-                        alert("Submission failed");
-                      });
-                  }}
-                  className="w-full rounded-md bg-gradient-to-r from-[#2C6ED5] to-[#14B8A6] py-3 text-white font-semibold"
-                >
-                  {demo.submit_button_text}
-                </button>
-                
-
-                <p className="text-center text-xs text-[#111B33]/55">
+                <p className="text-center text-xs text-[#111B33]/55 mt-4">
                 Your information is safe.
                 </p>
-            </form>
             </div>
         </div>
       </section>

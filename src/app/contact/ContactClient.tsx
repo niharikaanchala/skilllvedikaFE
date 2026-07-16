@@ -7,6 +7,11 @@ import CounsellingModal from "@/app/course/[id]/CounsellingModal";
 import { Home } from "lucide-react";
 import Link from "next/link";
 import { apiUrl } from "@/app/lib/api";
+import FormLegalLinks from "@/app/components/legal/FormLegalLinks";
+import {
+  OTHER_COURSE_VALUE,
+  SearchableCourseSelect,
+} from "@/app/components/CourseLeadForm";
 
 export type ContactPageData = {
   meta?: {
@@ -52,13 +57,94 @@ type CourseOption = {
 
 export default function ContactClient({ initialData }: Props) {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const [data, setData] = useState<ContactPageData | null>(initialData);
   const [courseOptions, setCourseOptions] = useState<CourseOption[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(false);
+  const [form, setForm] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    selected_course: "",
+    other_course: "",
+    agreed_to_terms: false,
+  });
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
+    setError("");
+    setSubmitted(false);
+
+    if (!form.full_name.trim() || !form.email.trim() || !form.phone.trim()) {
+      setError("Please fill all required fields.");
+      return;
+    }
+    if (!form.selected_course) {
+      setError("Please select a course.");
+      return;
+    }
+    if (form.selected_course === OTHER_COURSE_VALUE && !form.other_course.trim()) {
+      setError("Please specify the course.");
+      return;
+    }
+    if (!form.agreed_to_terms) {
+      setError("Please agree to Terms & Conditions.");
+      return;
+    }
+
+    const isOther = form.selected_course === OTHER_COURSE_VALUE;
+    const courseLabel = isOther
+      ? form.other_course.trim() || "Other"
+      : form.selected_course.trim();
+    const matched = courseOptions.find((c) => c.title === form.selected_course);
+    const courseId =
+      isOther
+        ? null
+        : typeof matched?.id === "number"
+          ? matched.id
+          : Number.isFinite(Number(matched?.id))
+            ? Number(matched?.id)
+            : null;
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(apiUrl("/api/courses/counselling/submit/"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: form.full_name.trim().split(/\s+/).slice(0, 1).join(""),
+          last_name: form.full_name.trim().split(/\s+/).slice(1).join(" "),
+          full_name: form.full_name.trim(),
+          years_of_experience: "",
+          skills: "",
+          agreed_to_terms: form.agreed_to_terms,
+          message: courseLabel ? `Interested course: ${courseLabel}` : "",
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          course: courseId,
+        }),
+      });
+
+      if (!res.ok) {
+        setError("Could not submit form. Please try again.");
+        return;
+      }
+
+      setSubmitted(true);
+      setForm({
+        full_name: "",
+        email: "",
+        phone: "",
+        selected_course: "",
+        other_course: "",
+        agreed_to_terms: false,
+      });
+    } catch {
+      setError("Network error while submitting form.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   // Keep current behavior in dev/admin workflows: if server couldn't fetch,
@@ -286,16 +372,12 @@ export default function ContactClient({ initialData }: Props) {
                 loading="lazy"
                 style={{ border: 0 }}
                 allowFullScreen
-                // referrerPolicy="no-referrer-when-downgrade"
               />
             </div>
 
           </div>
         </div>
       </section>
-
-      
-
 
       {/* Demo section */}
       <section className="bg-[#EAF2FC] px-6 md:px-12 py-16">
@@ -328,6 +410,9 @@ export default function ContactClient({ initialData }: Props) {
             <form className="space-y-4" onSubmit={handleSubmit}>
               <input
                 required
+                name="full_name"
+                value={form.full_name}
+                onChange={(e) => setForm((p) => ({ ...p, full_name: e.target.value }))}
                 placeholder="Full name"
                 className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2D6ED5]"
               />
@@ -335,6 +420,9 @@ export default function ContactClient({ initialData }: Props) {
               <input
                 required
                 type="email"
+                name="email"
+                value={form.email}
+                onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
                 placeholder="Email address"
                 className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2D6ED5]"
               />
@@ -346,35 +434,70 @@ export default function ContactClient({ initialData }: Props) {
                 <input
                   required
                   pattern="[0-9]{10}"
+                  name="phone"
+                  value={form.phone}
+                  onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
                   placeholder="Phone number"
                   className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2D6ED5]"
                 />
               </div>
 
-              <select
+              <SearchableCourseSelect
                 required
-                className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2D6ED5]"
-              >
-                <option value="">
-                  {coursesLoading ? "Loading courses..." : "Choose a course"}
-                </option>
-                {courseOptions.map((course) => (
-                  <option key={course.id} value={course.title}>
-                    {course.title}
-                  </option>
-                ))}
-              </select>
+                name="selected_course"
+                value={form.selected_course}
+                onChange={(v) =>
+                  setForm((p) => ({
+                    ...p,
+                    selected_course: v,
+                    other_course: v === OTHER_COURSE_VALUE ? p.other_course : "",
+                  }))
+                }
+                loading={coursesLoading}
+                placeholder={coursesLoading ? "Loading courses..." : "Choose a course"}
+                className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm bg-white outline-none focus:ring-2 focus:ring-[#2D6ED5]"
+                options={courseOptions.map((course) => ({
+                  value: course.title,
+                  label: course.title,
+                }))}
+              />
+
+              {form.selected_course === OTHER_COURSE_VALUE ? (
+                <input
+                  required
+                  name="other_course"
+                  value={form.other_course}
+                  onChange={(e) => setForm((p) => ({ ...p, other_course: e.target.value }))}
+                  placeholder="Please specify the course"
+                  className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2D6ED5]"
+                />
+              ) : null}
 
               <label className="flex items-start gap-2 text-sm text-[#12233F]/70">
-                <input required type="checkbox" className="mt-1" />
-                <span>I agree with the Terms & Conditions.</span>
+                <input
+                  required
+                  type="checkbox"
+                  checked={form.agreed_to_terms}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, agreed_to_terms: e.target.checked }))
+                  }
+                  className="mt-1"
+                />
+                <span>
+                  <FormLegalLinks />
+                </span>
               </label>
+
+              {error ? <p className="text-sm text-rose-600 text-center">{error}</p> : null}
 
               <button
                 type="submit"
-                className="w-full rounded-md bg-gradient-to-r from-[#2C6ED5] to-[#14B8A6] py-3 text-white font-semibold hover:opacity-95 transition"
+                disabled={submitting}
+                className="w-full rounded-md bg-gradient-to-r from-[#2C6ED5] to-[#14B8A6] py-3 text-white font-semibold hover:opacity-95 transition disabled:opacity-70"
               >
-                {data.form?.button_text || "Submit your details"}
+                {submitting
+                  ? "Submitting..."
+                  : data.form?.button_text || "Submit your details"}
               </button>
             </form>
 
@@ -389,4 +512,3 @@ export default function ContactClient({ initialData }: Props) {
     </main>
   );
 }
-

@@ -98,23 +98,21 @@ function CourseCard({ c }: { c: CourseApi }) {
   );
 }
 
-type TabKey = "trending" | "popular" | "free";
+type TabKey = "trending" | "popular";
 
 type Props = {
   trending: CourseApi[];
   popular: CourseApi[];
-  free: CourseApi[];
 };
 
-export default function CoursesSectionClient({ trending, popular, free }: Props) {
+export default function CoursesSectionClient({ trending, popular }: Props) {
   const [tab, setTab] = useState<TabKey>("trending");
   const [page, setPage] = useState(0);
 
   const list = useMemo(() => {
-    if (tab === "trending") return trending;
     if (tab === "popular") return popular;
-    return free;
-  }, [tab, trending, popular, free]);
+    return trending;
+  }, [tab, trending, popular]);
 
   const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
 
@@ -160,14 +158,11 @@ export default function CoursesSectionClient({ trending, popular, free }: Props)
         <div className="mt-8 flex flex-wrap justify-center gap-3 sm:gap-4">
           {tabBtn("trending", "Trending")}
           {tabBtn("popular", "Popular")}
-          {tabBtn("free", "Free")}
         </div>
 
         {list.length === 0 ? (
           <p className="text-sm text-[#64748b] mt-14 py-12">
-            {tab === "free"
-              ? "No free courses right now. Try Trending or Popular."
-              : "No courses in this section yet."}
+            No courses in this section yet.
           </p>
         ) : (
           <>

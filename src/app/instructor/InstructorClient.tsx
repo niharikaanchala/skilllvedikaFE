@@ -5,6 +5,10 @@ import Link from "next/link";
 import { Home } from "lucide-react";
 import { apiUrl } from "@/app/lib/api";
 import FormLegalLinks from "@/app/components/legal/FormLegalLinks";
+import {
+  OTHER_COURSE_VALUE,
+  SearchableCourseSelect,
+} from "@/app/components/CourseLeadForm";
 
 const EXPERIENCE_OPTIONS = ["0-1 years", "1-3 years", "3-5 years", "5-8 years", "8+ years"];
 const SKILL_SUGGESTIONS = ["React", "Next.js", "Python", "Django", "JavaScript", "TypeScript", "Node.js", "SQL"];
@@ -54,19 +58,26 @@ export default function InstructorClient({ initialData, courses }: Props) {
     message: "",
     agreed_to_terms: false,
   });
-  const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<string>("");
+  const [otherCourse, setOtherCourse] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
 
   useEffect(() => {
-    if (courseList.length > 0) {
-      setSelectedCourse(courseList[0].id);
+    if (courseList.length > 0 && !selectedCourse) {
+      setSelectedCourse(String(courseList[0].id));
     }
-  }, [courseList]);
+  }, [courseList, selectedCourse]);
 
-  const selectedCourseObj = courseList.find((course) => course.id === selectedCourse);
+  const selectedCourseObj = courseList.find(
+    (course) => String(course.id) === selectedCourse,
+  );
+  const courseLabel =
+    selectedCourse === OTHER_COURSE_VALUE
+      ? otherCourse.trim() || "Other"
+      : selectedCourseObj?.title?.trim() || "";
 
   const onFieldChange = (e: any) => {
     const { name, value, type, checked } = e.target;
@@ -82,6 +93,14 @@ export default function InstructorClient({ initialData, courses }: Props) {
       setSubmitError("Please fill all required fields.");
       return;
     }
+    if (!selectedCourse) {
+      setSubmitError("Please select a course.");
+      return;
+    }
+    if (selectedCourse === OTHER_COURSE_VALUE && !otherCourse.trim()) {
+      setSubmitError("Please specify the course.");
+      return;
+    }
     if (!formData.agreed_to_terms) {
       setSubmitError("Please agree to Terms & Conditions.");
       return;
@@ -89,7 +108,10 @@ export default function InstructorClient({ initialData, courses }: Props) {
 
     setSubmitting(true);
     try {
-      const combinedMessage = [formData.message, selectedCourseObj?.title ? `Interested course: ${selectedCourseObj.title}` : ""]
+      const combinedMessage = [
+        formData.message,
+        courseLabel ? `Interested course: ${courseLabel}` : "",
+      ]
         .filter(Boolean)
         .join("\n");
       const res = await fetch(apiUrl("/api/instructor/applications/submit/"), {
@@ -113,6 +135,8 @@ export default function InstructorClient({ initialData, courses }: Props) {
         message: "",
         agreed_to_terms: false,
       });
+      setSelectedCourse(courseList.length > 0 ? String(courseList[0].id) : "");
+      setOtherCourse("");
     } catch {
       setSubmitError("Submission failed.");
     } finally {
@@ -242,20 +266,34 @@ export default function InstructorClient({ initialData, courses }: Props) {
             </div>
             <div>
               <label className="text-sm font-semibold">Course *</label>
-              <select
-                value={selectedCourse ?? ""}
-                onChange={(e) => setSelectedCourse(Number(e.target.value))}
-                className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2C6ED5] bg-white"
-                required
-              >
-                <option value="">Select course</option>
-                {courseList.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.title}
-                    {course.category_name ? ` (${course.category_name})` : ""}
-                  </option>
-                ))}
-              </select>
+              <div className="mt-2">
+                <SearchableCourseSelect
+                  value={selectedCourse}
+                  onChange={(v) => {
+                    setSelectedCourse(v);
+                    if (v !== OTHER_COURSE_VALUE) setOtherCourse("");
+                  }}
+                  className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2C6ED5] bg-white"
+                  required
+                  placeholder="Select course"
+                  options={courseList.map((course) => ({
+                    value: String(course.id),
+                    label: course.category_name
+                      ? `${course.title} (${course.category_name})`
+                      : course.title,
+                  }))}
+                />
+              </div>
+              {selectedCourse === OTHER_COURSE_VALUE ? (
+                <input
+                  type="text"
+                  value={otherCourse}
+                  onChange={(e) => setOtherCourse(e.target.value)}
+                  placeholder="Please specify the course *"
+                  required
+                  className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2C6ED5]"
+                />
+              ) : null}
             </div>
 
             <label className="flex items-start gap-2 text-sm">

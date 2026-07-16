@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import CounsellingModal from "./CounsellingModal";
+import CourseLeadForm from "@/app/components/CourseLeadForm";
 import {
   fetchCourses,
   fetchCourseById,
@@ -253,12 +254,6 @@ export default async function CourseDetailPage({ params }: PageProps) {
       )
     : null;
 
-const handleSubmit=async()=>{
-
-}
-
-  // console.log("Curriculum Data:", curriculum);
-
   return (
     <>
       <script
@@ -388,50 +383,18 @@ const handleSubmit=async()=>{
               Book a free counselling call — we&apos;ll get back to you shortly.
             </p>
 
-            <form className="mt-5 space-y-4">
-              <input
-                type="text"
-                placeholder="Full Name *"
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#00aeef] focus:border-transparent transition"
-              />
-
-              <input
-                type="email"
-                placeholder="Email Address *"
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#00aeef] focus:border-transparent"
-              />
-
-              <input
-                type="tel"
-                placeholder="Phone Number *"
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#00aeef] focus:border-transparent"
-              />
-
-              <select
-                name="course"
-                defaultValue={String(course.id)}
-                aria-label="Select course"
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-sky-50/80 text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00aeef] focus:border-transparent"
-              >
-                {[...allCourses]
-                  .sort((a, b) => a.title.localeCompare(b.title))
-                  .map((item) => (
-                    <option key={item.id} value={String(item.id)}>
-                      {item.title}
-                    </option>
-                  ))}
-              </select>
-
-              <button
-              
-                className="w-full py-3.5 rounded-xl font-bold text-white shadow-md transition hover:brightness-105"
-                style={{
-                  background: `linear-gradient(90deg, ${cyan} 0%, #0090c9 100%)`,
-                }}
-              >
-                Get Free Counselling
-              </button>
-            </form>
+            <CourseLeadForm
+              courses={allCourses.map((item) => ({
+                id: item.id,
+                title: item.title,
+              }))}
+              defaultCourseId={course.id}
+              defaultCourseTitle={course.title}
+              submitLabel="Get Free Counselling"
+              buttonStyle={{
+                background: `linear-gradient(90deg, ${cyan} 0%, #0090c9 100%)`,
+              }}
+            />
 
             <p className="text-xs text-slate-500 mt-4 text-center leading-relaxed">
               No spam. We respect your privacy.

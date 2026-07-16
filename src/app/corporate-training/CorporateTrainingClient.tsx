@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Home } from "lucide-react";
 import Link from "next/link";
-import FormLegalLinks from "@/app/components/legal/FormLegalLinks";
+import CounsellingModal from "@/app/course/[id]/CounsellingModal";
+import CourseLeadForm from "@/app/components/CourseLeadForm";
 
 /* TYPES (unchanged) */
 type Hero = {
@@ -48,12 +49,6 @@ type Demo = {
   button_text: string;
 };
 
-type Seo = {
-  meta_title?: string;
-  meta_description?: string;
-  meta_keywords?: string;
-};
-
 type SectionTitles = {
   empower: string;
   empowerSubtitle: string;
@@ -80,7 +75,6 @@ export default function CorporateTrainingClient({ initialData, courses }: Props)
   const [advantage, setAdvantage] = useState<AdvantageItem[]>([]);
   const [process, setProcess] = useState<ProcessStep[]>([]);
   const [demo, setDemo] = useState<Demo | null>(null);
-  const [seo, setSeo] = useState<Seo | null>(null);
 
   const defaultSectionTitles: SectionTitles = {
     empower: "Empower Your Workforce",
@@ -108,8 +102,6 @@ export default function CorporateTrainingClient({ initialData, courses }: Props)
       setAdvantage(initialData.advantage ?? []);
       setProcess(initialData.process ?? []);
       setDemo(initialData.demo ?? null);
-      setSeo(initialData.meta ?? null);
-      console.log("🔥 HERO:", initialData.hero);
       setSectionTitles({
         empower:
           initialData?.section_titles?.empower ??
@@ -161,6 +153,13 @@ export default function CorporateTrainingClient({ initialData, courses }: Props)
     return <p className="text-center mt-20">Content unavailable.</p>;
   }
 
+  const courseOptions = (Array.isArray(courses) ? courses : []).map(
+    (course: any) => ({
+      id: course.id,
+      title: course.title,
+    }),
+  );
+
   return (
     <div className="bg-[#f4f8fc] pt-16">
       {/* Breadcrumb */}
@@ -192,9 +191,10 @@ export default function CorporateTrainingClient({ initialData, courses }: Props)
             <p className="mt-4 max-w-md text-slate-600">
               {hero.subtitle}
             </p>
-            <button className="mt-6 rounded-lg bg-[#2f5fa8] px-6 py-3 font-medium text-white transition hover:bg-[#264f8d]">
-              {hero.button_text}
-            </button>
+            <CounsellingModal
+              buttonText={hero.button_text || "Get Started"}
+              className="mt-6 rounded-lg bg-[#2f5fa8] px-6 py-3 font-medium text-white transition hover:bg-[#264f8d] cursor-pointer"
+            />
           </div>
 
           <div className="flex justify-center">
@@ -239,19 +239,6 @@ export default function CorporateTrainingClient({ initialData, courses }: Props)
                 {sectionTitles.empowerSubtitle}
               </p>
             ) : null}
-            {/* {empower.title && (
-              <p className="mt-2 text-lg font-semibold text-[#1a2d49]">
-                {empower.title}
-              </p>
-            )} */}
-            {/* <p className="mt-4 leading-relaxed text-slate-600">
-              {empower.description}
-            </p> */}
-            {/* {empower.description2 && (
-              <p className="mt-4 leading-relaxed text-slate-600">
-                {empower.description2}
-              </p>
-            )} */}
           </div>
         </div>
       </section>
@@ -295,7 +282,7 @@ export default function CorporateTrainingClient({ initialData, courses }: Props)
 
           <div className="grid md:grid-cols-2 gap-6 mt-10 text-left">
             {advantage.map((item, i) => (
-              <div key={i} className="flex gap-4">
+              <div key={i} className="flex flex-col items-center text-center">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2f5fa8]/10 text-lg text-[#2f5fa8]">
                   {item.icon || ""}
                 </div>
@@ -343,22 +330,41 @@ export default function CorporateTrainingClient({ initialData, courses }: Props)
 
       {/* DEMO */}
       <section className="bg-[#f4f8fc] px-6 py-16 md:px-12">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-center">
-          <div>
-            <h2 className="text-3xl font-bold text-[#1a2d49]">
-              {sectionTitles.demo}
-            </h2>
-            {sectionTitles.demoSubtitle ? (
-              <p className="mt-2 text-slate-600">{sectionTitles.demoSubtitle}</p>
-            ) : null}
-            {demo.title && <p className="mt-2">{demo.title}</p>}
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-[1.15fr_0.85fr] gap-16 items-center">
+        <div className="space-y-8">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-bold leading-tight text-[#1a2d49]">
+            {sectionTitles.demo}
+          </h2>
 
-            <ul className="mt-4 space-y-2">
-              {demo.features.map((f, i) => (
-                <li key={i}>• {f}</li>
-              ))}
-            </ul>
-          </div>
+          {sectionTitles.demoSubtitle ? (
+            <p className="mt-4 text-lg leading-8 text-slate-600">
+              {sectionTitles.demoSubtitle}
+            </p>
+          ) : null}
+        </div>
+
+        {demo.title && (
+          <p className="text-xl md:text-2xl font-bold leading-8 md:leading-9 text-[#1a2d49]">
+
+            {demo.title}
+          </p>
+        )}
+
+        <ul className="space-y-5">
+          {demo.features.map((f, i) => (
+            <li key={i} className="flex items-start gap-4">
+              <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#2f5fa8] text-sm font-semibold text-white">
+                {i + 1}
+              </div>
+
+              <p className="text-base leading-7 text-slate-700">
+                {f}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-lg">
             <h3 className="text-xl font-semibold text-center">
@@ -368,32 +374,14 @@ export default function CorporateTrainingClient({ initialData, courses }: Props)
               {demo.form_subtitle}
             </p>
 
-            <input className="w-full border p-3 mb-4" placeholder="Full Name" />
-            <input className="w-full border p-3 mb-4" placeholder="Email" />
-           <div className="flex items-stretch mb-4">
-  <span className="px-3 bg-gray-100 border border-r-0 flex items-center rounded-l-md">
-    🇮🇳 +91
-  </span>
-
-  <input
-    type="tel"
-    placeholder="Phone Number"
-    className="w-full border border-l-0 px-4 rounded-r-md focus:outline-none"
-  />
-</div>
-            <select className="w-full border p-3 mb-4">
-              <option value="">Select Course</option>
-              {courses.map((course: any) => (
-                <option key={course.id} value={course.id}>{course.title}</option>
-              ))}
-            </select>
-            <label className="flex items-start gap-2 text-sm">
-              <input type="checkbox" name="agreed_to_terms" />
-              <FormLegalLinks />
-            </label>
-            <button className="w-full rounded-lg bg-[#2f5fa8] py-3 text-white">
-              {demo.button_text}
-            </button>
+            <CourseLeadForm
+              courses={courseOptions}
+              submitLabel={demo.button_text || "Submit"}
+              className="space-y-4"
+              inputClassName="w-full border p-3 rounded-md"
+              selectClassName="w-full border p-3 rounded-md"
+              buttonClassName="w-full rounded-lg bg-[#2f5fa8] py-3 text-white disabled:opacity-70"
+            />
           </div>
         </div>
       </section>

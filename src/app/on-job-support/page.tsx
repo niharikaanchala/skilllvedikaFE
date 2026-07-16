@@ -842,17 +842,23 @@ export default async function OnJobSupportPage() {
 
         {/* PROCESS */}
         <section className="px-6 md:px-12 py-20">
-          <div className="max-w-4xl mx-auto text-center">
+          <div className="max-w-7xl mx-auto text-center">
             <h2 className="text-4xl font-extrabold">
               {sectionContent.process_title || "Our Process"}
             </h2>
-            <div className="mt-10 space-y-6">
+            <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {steps.map((step, i: number) => (
-                <div key={step.id} className="flex justify-center gap-4">
-                  <div className="w-8 h-8 bg-blue-500 text-white flex items-center justify-center rounded-full">
+                <div
+                  key={step.id}
+                  className="relative rounded-2xl bg-white p-6 shadow-md border border-slate-200 hover:shadow-lg transition-all"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#2f5fa8] text-white text-lg font-bold">
                     {i + 1}
                   </div>
-                  <div className="bg-white p-4 rounded border w-[280px]">{step.desc}</div>
+
+                  <p className="mt-5 text-slate-700 leading-7">
+                    {step.desc}
+                  </p>
                 </div>
               ))}
             </div>
