@@ -243,7 +243,7 @@ export default function Footer() {
               </li>
             </ul>
             <ul className="mt-3 space-y-2 text-sm text-slate-300">
-            <li>
+              <li>
                 <Link href="/disclaimer" className="hover:text-white transition">
                   Disclaimer
                 </Link>
@@ -274,7 +274,7 @@ export default function Footer() {
 
         {/* Bottom */}
         <p className="mt-8 border-t border-white/10 pt-6 text-center text-xs text-slate-400 md:text-sm">
-          © {new Date().getFullYear()} {brandLabel} - All Rights Reserved
+          © 2026 skillvedika.com. All Rights Reserved. Skillvedika is owned and operated by TutorKhoj Private Limited.
         </p>
       </div>
     </footer>
