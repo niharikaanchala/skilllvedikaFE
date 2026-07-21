@@ -1,6 +1,6 @@
 import Link from "next/link";
 import BlogFilter from "../components/BlogFilter";
-import { apiUrl, fetchBlogs } from "@/app/lib/api";
+import { apiUrl, fetchBlogsPage } from "@/app/lib/api";
 import { blogArticleMeta } from "@/app/lib/blog-utils";
 import { buildBlogListSchema } from "@/app/components/schemas/blog-schema";
 import { buildBreadcrumbSchema } from "@/app/components/schemas/breadcrumb-schema";
@@ -37,9 +37,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function BlogPage() {
-  let posts: Awaited<ReturnType<typeof fetchBlogs>> = [];
+  let posts: Awaited<ReturnType<typeof fetchBlogsPage>>["results"] = [];
   try {
-    posts = await fetchBlogs();
+    const page = await fetchBlogsPage({ page: 1, pageSize: 9 });
+    posts = page.results;
   } catch {
     posts = [];
   }

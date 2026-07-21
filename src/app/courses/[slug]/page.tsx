@@ -21,8 +21,8 @@ import { buildFaqPageSchema } from "@/app/components/schemas/faq-schema";
 import { enforcePoppinsHtml } from "@/app/lib/html";
 import { Home } from "lucide-react";
 import type { Metadata } from "next";
-import CoursesCarousel from "@/app/components/CoursesCarousel";
 import BlogsCarousel from "@/app/components/BlogsCarousel";
+import { SearchableCourses } from "@/app/components/SearchableCourses";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -423,31 +423,20 @@ export default async function CategoryPage({ params }: PageProps) {
 
       <section className="px-6 md:px-12 py-12 md:py-14 bg-white/50">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-4 mb-10">
+          <div className="flex items-center gap-4 mb-8">
             <h2 className="text-base md:text-lg font-bold text-[#001f3f] shrink-0">
               {category.name} Programs
             </h2>
             <div className="flex-1 h-1 rounded-full bg-gradient-to-r from-[#0066FF] via-sky-500 to-blue-200" />
           </div>
 
-          {categoryCourses.length ? (
-            <CoursesCarousel courses={categoryCourses} />
-          ) : (
-            <div className="rounded-2xl border border-dashed border-sky-300 bg-gradient-to-br from-[#E7F3FF]/50 to-white p-12 text-center">
-              <p className="text-[#001f3f] font-bold text-lg">
-                No courses in this category yet.
-              </p>
-              <p className="text-slate-600 text-sm mt-2">
-                Browse other categories from the main courses page.
-              </p>
-              <Link
-                href="/courses"
-                className="inline-flex mt-6 text-sm font-bold text-[#0066FF] hover:text-[#0047b3] underline-offset-4 hover:underline"
-              >
-                View all courses
-              </Link>
-            </div>
-          )}
+          <SearchableCourses
+            courses={categoryCourses}
+            categoryId={category.id}
+            searchPlaceholder={`Search ${category.name} courses...`}
+            emptyTitle="No courses in this category yet."
+            emptyHint="Browse other categories from the main courses page."
+          />
         </div>
       </section>
 

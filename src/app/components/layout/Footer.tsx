@@ -274,7 +274,7 @@ export default function Footer() {
 
         {/* Bottom */}
         <p className="mt-8 border-t border-white/10 pt-6 text-center text-xs text-slate-400 md:text-sm">
-          © {new Date().getFullYear()} {brandLabel} - All Rights Reserved
+           © 2026 skillvedika.com. All Rights Reserved. Skillvedika is owned and operated by TutorKhoj Private Limited.
         </p>
       </div>
     </footer>

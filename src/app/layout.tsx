@@ -21,6 +21,12 @@ export const metadata: Metadata = {
     icon: "/favicon-logo.ico",
   },
 };
+
+function googleTagId(value: unknown, pattern: RegExp): string {
+  const id = String(value ?? "").trim().toUpperCase();
+  return pattern.test(id) ? id : "";
+}
+
 export default async function RootLayout({
   children,
 }: {
@@ -31,11 +37,19 @@ export default async function RootLayout({
     fetchSiteBranding(),
   ]);
   // console.log("settings: ", settings)
-  const gaId =
+  const gaId = googleTagId(
     settings
       .map((s) => String(s.google_analytics_id ?? "").trim())
-      .find((id) => id.length > 0) ?? "";
-  const hasGaId = Boolean(gaId);
+      .find((id) => id.length > 0),
+    /^(?:G-[A-Z0-9]+|GT-[A-Z0-9]+|UA-\d+-\d+)$/,
+  );
+  const googleAdsTagId = googleTagId(
+    settings
+      .map((s) => String(s.google_ads_tag_id ?? "").trim())
+      .find((id) => id.length > 0),
+    /^(?:AW-\d+|GT-[A-Z0-9]+)$/,
+  );
+  const googleTagLoaderId = gaId || googleAdsTagId;
   const whatsappNumber =
     settings
       .map((s) => String(s.whatsapp_number ?? "").trim().replace(/\D/g, ""))
@@ -68,21 +82,22 @@ export default async function RootLayout({
             __html: JSON.stringify(websiteSchema).replace(/<\/script/gi, "<\\/script"),
           }}
         />
-        {hasGaId ? (
+        {googleTagLoaderId ? (
           <>
             <Script
               strategy="lazyOnload"
-              src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`}
+              src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(googleTagLoaderId)}`}
             />
             <Script
-              id="google-analytics"
+              id="google-tag"
               strategy="lazyOnload"
               dangerouslySetInnerHTML={{
                 __html: `
                   window.dataLayer = window.dataLayer || [];
                   function gtag(){dataLayer.push(arguments);}
                   gtag('js', new Date());
-                  gtag('config', '${gaId}');
+                  ${gaId ? `gtag('config', ${JSON.stringify(gaId)});` : ""}
+                  ${googleAdsTagId ? `gtag('config', ${JSON.stringify(googleAdsTagId)});` : ""}
                 `,
               }}
             />

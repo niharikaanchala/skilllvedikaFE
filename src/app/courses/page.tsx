@@ -2,22 +2,19 @@ import Link from "next/link";
 import FaqSection from "../components/Home/FaqSection";
 import CounsellingModal from "../course/[id]/CounsellingModal";
 import {
-  fetchCategories,
-  fetchCourses,
-  fetchBlogs,
+  fetchCategoriesPage,
+  fetchCoursesPage,
+  fetchBlogsPage,
   fetchCoursesPageContent,
-  type CategoryApi,
   type CourseApi,
-  type BlogPostApi,
 } from "../lib/api";
 import { buildCourseListSchema } from "../components/schemas/course-schema";
 import { buildCategoryListSchema } from "../components/schemas/category-schema";
 import { buildBreadcrumbSchema } from "../components/schemas/breadcrumb-schema";
 import { Home } from "lucide-react";
 import { Metadata } from "next";
-import CategoriesCarousel from "../components/CategoriesCarousel";
-import CoursesCarousel from "../components/CoursesCarousel";
-import CourseCard from "../components/CourseCard";
+import { SearchableCategories } from "@/app/components/SearchableCategories";
+import { SearchableCourses } from "@/app/components/SearchableCourses";
 import BlogsCarousel from "../components/BlogsCarousel";
 import { enforcePoppinsHtml } from "../lib/html";
 function clampText(text: string, maxLen: number) {
@@ -95,127 +92,55 @@ export const generateMetadata = async (): Promise<Metadata> => {
     },
   };
 };
+type CoursesPageProps = {
+  searchParams?: Promise<{ q?: string | string[] }>;
+};
+
+function resolveSearchQuery(
+  searchParams?: { q?: string | string[] },
+): string {
+  const raw = searchParams?.q;
+  if (typeof raw === "string") return raw.trim();
+  if (Array.isArray(raw)) return String(raw[0] ?? "").trim();
+  return "";
+}
+
 export default async function CoursesPage({
   searchParams,
-}: {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const sp = (await searchParams) ?? {};
-  const qRaw = sp.q ?? sp.query ?? sp.search;
-  const q = (Array.isArray(qRaw) ? qRaw[0] : qRaw ?? "").trim();
-  const qLower = q.toLowerCase();
-  const categoryRaw = sp.category;
-  const category = (Array.isArray(categoryRaw) ? categoryRaw[0] : categoryRaw ?? "").trim();
-  const categoryLower = category.toLowerCase();
+}: CoursesPageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const initialQuery = resolveSearchQuery(resolvedSearchParams);
 
   const [categoriesRes, coursesRes, blogsRes, pageContentRes] =
     await Promise.allSettled([
-      fetchCategories(),
-      fetchCourses(),
-      fetchBlogs(),
+      fetchCategoriesPage({ page: 1, pageSize: 12 }),
+      fetchCoursesPage({
+        page: 1,
+        pageSize: 12,
+        ...(initialQuery ? { search: initialQuery } : {}),
+      }),
+      fetchBlogsPage({ page: 1, pageSize: 6 }),
       fetchCoursesPageContent(),
     ]);
 
   const categories =
-    categoriesRes.status === "fulfilled" ? categoriesRes.value : [];
-  const courses = coursesRes.status === "fulfilled" ? coursesRes.value : [];
-  const blogs = blogsRes.status === "fulfilled" ? blogsRes.value : [];
+    categoriesRes.status === "fulfilled" ? categoriesRes.value.results : [];
+  const courses =
+    coursesRes.status === "fulfilled" ? coursesRes.value.results : [];
+  const blogs =
+    blogsRes.status === "fulfilled" ? blogsRes.value.results : [];
   const pageContent =
     pageContentRes.status === "fulfilled" ? pageContentRes.value : null;
 
-    const filteredCourses = courses.filter((course: CourseApi) => {
-      const categoryLabel =
-        typeof course.category === "object" && course.category
-          ? course.category.slug || course.category.name
-          : course.category_name || "";
-    
-      const matchesSearch = qLower
-        ? `${course.title ?? ""} ${course.description ?? ""} ${categoryLabel}`
-            .toLowerCase()
-            .includes(qLower)
-        : true;
-    
-      const matchesCategory = categoryLower
-        ? categoryLabel.toLowerCase().includes(categoryLower)
-        : true;
-    
-      return matchesSearch && matchesCategory;
-    });
-
-  const sortedCourses = filteredCourses
+  const sortedCourses = courses
     ?.slice()
     .sort((a: CourseApi, b: CourseApi) => b.rating - a.rating);
-  const isSearchView = Boolean(q || category);
-  const courseListSchema = buildCourseListSchema(filteredCourses);
+  const courseListSchema = buildCourseListSchema(sortedCourses ?? []);
   const categoryListSchema = buildCategoryListSchema(categories);
   const breadcrumbSchema = buildBreadcrumbSchema([
     { name: "Home", url: "/" },
     { name: "Courses", url: "/courses" },
   ]);
-
-  if (isSearchView) {
-    return (
-      <>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(courseListSchema).replace(/<\/script/gi, "<\\/script"),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(categoryListSchema).replace(/<\/script/gi, "<\\/script"),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(breadcrumbSchema).replace(/<\/script/gi, "<\\/script"),
-          }}
-        />
-        <main className="min-h-screen bg-gradient-to-b from-[#eaf0f7] via-white to-[#f4f8fc] pt-16 text-slate-800">
-          <section className="border-b border-slate-200/70 bg-white/70 px-6 py-4 md:px-12">
-            <div className="max-w-6xl mx-auto text-xs md:text-sm text-slate-500 flex items-center">
-              <Home className="w-4 h-4 text-slate-500 mr-1" />
-              <Link href="/" className="transition-colors hover:text-[#2f5fa8]">
-                Home
-              </Link>
-              <span className="mx-2 text-slate-400">/</span>
-              <Link href="/courses" className="transition-colors hover:text-[#2f5fa8]">
-                Courses
-              </Link>
-              <span className="mx-2 text-slate-400">/</span>
-              <span className="font-semibold text-[#1a2d49]">Search</span>
-            </div>
-          </section>
-
-          <section className="bg-white px-6 py-12 md:px-12 md:py-14">
-            <div className="max-w-6xl mx-auto">
-              {sortedCourses?.length ? (
-                <>
-                  <div className="flex items-center gap-4 mb-8">
-                    <h2 className="shrink-0 text-base font-bold text-[#1a2d49]">
-                      Search Results
-                    </h2>
-                    <div className="h-1 flex-1 rounded-full bg-gradient-to-r from-[#2f5fa8] via-[#4a79bd] to-[#cbdcf1]" />
-                  </div>
-                  <CoursesCarousel courses={sortedCourses} />
-                </>
-              ) : (
-                <div className="text-center p-12 rounded-2xl border border-dashed border-sky-200 bg-sky-50/50">
-                  <p className="font-semibold text-[#1a2d49]">No results found</p>
-                  <p className="text-sm text-slate-600 mt-2">
-                    {`No course or category matched "${q || category}". Try a different search term.`}
-                  </p>
-                </div>
-              )}
-            </div>
-          </section>
-        </main>
-      </>
-    );
-  }
 
   return (
     <>
@@ -300,7 +225,7 @@ export default async function CoursesPage({
         <div className="max-w-6xl mx-auto">
 
           {/* Header */}
-          <div className="mb-12 text-center md:text-left">
+          <div className="mb-8 text-center md:text-left">
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#0f1f3a]">
               Browse by Category
             </h2>
@@ -310,47 +235,23 @@ export default async function CoursesPage({
             </p>
           </div>
 
-          {/* Grid */}
-          {categories?.length ? (
-            <CategoriesCarousel categories={categories} />
-          ) : (
-            <div className="col-span-full text-center p-14 rounded-2xl border border-dashed border-[#cfe0ff] bg-white">
-              <p className="text-lg font-semibold text-[#0f1f3a]">
-                No categories available
-              </p>
-              <p className="text-sm text-slate-500 mt-2">
-                Categories will appear here once added.
-              </p>
-            </div>
-          )}
+          <SearchableCategories categories={categories ?? []} />
         </div>
       </section>
 
       {/* Courses */}
       <section id="all-courses" className="bg-white px-6 py-12 md:px-12 md:py-14">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-4 mb-10">
+          <div className="flex items-center gap-4 mb-8">
             <h2 className="shrink-0 text-base font-bold text-[#1a2d49]">
               All Courses
             </h2>
             <div className="h-1 flex-1 rounded-full bg-gradient-to-r from-[#2f5fa8] via-[#4a79bd] to-[#cbdcf1]" />
           </div>
-          {sortedCourses?.length ? (
-            <CoursesCarousel courses={sortedCourses} />
-          ) : (
-            <div className="text-center p-12 rounded-2xl border border-dashed border-sky-200 bg-sky-50/50">
-              <p className="font-semibold text-[#1a2d49]">
-                {q || category ? "No results found" : "No courses found"}
-              </p>
-              <p className="text-sm text-slate-600 mt-2">
-                {q || category
-                  ? `No course or category matched "${q || category}". Try a different search term.`
-                  : "Check back soon for new programmes."}
-              </p>
-            </div>
-          )}
-
-
+          <SearchableCourses
+            courses={sortedCourses ?? []}
+            initialQuery={initialQuery}
+          />
         </div>
       </section>
 

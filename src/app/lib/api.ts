@@ -37,6 +37,7 @@ export type CategoryApi = {
 export type SiteSettingApi = {
   id: number;
   google_analytics_id?: string | null;
+  google_ads_tag_id?: string | null;
   whatsapp_number?: string | null;
   whatsapp_message?: string | null;
 };
@@ -322,12 +323,115 @@ async function fetchJson<T>(path: string): Promise<T> {
   return res.json();
 }
 
+export type PaginatedResponse<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  results: T[];
+  categories?: string[];
+};
+
+export type ListPageParams = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  category?: string | number;
+  includeInactive?: boolean;
+  cache?: RequestCache;
+  revalidate?: number | false;
+};
+
+function buildListQuery(params: ListPageParams = {}): string {
+  const qs = new URLSearchParams();
+  if (params.includeInactive) qs.set("include_inactive", "1");
+  if (params.page != null) qs.set("page", String(params.page));
+  if (params.pageSize != null) qs.set("page_size", String(params.pageSize));
+  if (params.search?.trim()) qs.set("search", params.search.trim());
+  if (params.category != null && String(params.category).trim() !== "") {
+    qs.set("category", String(params.category));
+  }
+  const query = qs.toString();
+  return query ? `?${query}` : "";
+}
+
+export function parseListResponse<T>(data: unknown): PaginatedResponse<T> {
+  if (data && typeof data === "object" && Array.isArray((data as PaginatedResponse<T>).results)) {
+    const p = data as PaginatedResponse<T>;
+    return {
+      count: Number(p.count) || 0,
+      next: p.next ?? null,
+      previous: p.previous ?? null,
+      page: Number(p.page) || 1,
+      page_size: Number(p.page_size) || (p.results?.length ?? 0),
+      total_pages: Number(p.total_pages) || 1,
+      results: Array.isArray(p.results) ? p.results : [],
+      categories: Array.isArray(p.categories) ? p.categories.map(String) : undefined,
+    };
+  }
+  const results = Array.isArray(data) ? (data as T[]) : [];
+  return {
+    count: results.length,
+    next: null,
+    previous: null,
+    page: 1,
+    page_size: results.length || 10,
+    total_pages: 1,
+    results,
+  };
+}
+
 export function fetchCategories(): Promise<CategoryApi[]> {
   return fetchJson<CategoryApi[]>("/api/categories/").catch(() => []);
 }
 
 export function fetchCourses(): Promise<CourseApi[]> {
   return fetchJson<CourseApi[]>("/api/courses/").catch(() => []);
+}
+
+export async function fetchCategoriesPage(
+  params: ListPageParams = {},
+): Promise<PaginatedResponse<CategoryApi>> {
+  const query = buildListQuery({
+    page: params.page ?? 1,
+    pageSize: params.pageSize ?? 12,
+    search: params.search,
+  });
+  try {
+    const init: RequestInit & { next?: { revalidate?: number } } =
+      params.cache === "no-store" || params.revalidate === false
+        ? { cache: "no-store" }
+        : { next: { revalidate: params.revalidate ?? 300 } };
+    const res = await fetch(apiUrl(`/api/categories/${query}`), init);
+    if (!res.ok) return parseListResponse<CategoryApi>([]);
+    return parseListResponse<CategoryApi>(await res.json());
+  } catch {
+    return parseListResponse<CategoryApi>([]);
+  }
+}
+
+export async function fetchCoursesPage(
+  params: ListPageParams = {},
+): Promise<PaginatedResponse<CourseApi>> {
+  const query = buildListQuery({
+    page: params.page ?? 1,
+    pageSize: params.pageSize ?? 12,
+    search: params.search,
+    category: params.category,
+  });
+  try {
+    const init: RequestInit & { next?: { revalidate?: number } } =
+      params.cache === "no-store" || params.revalidate === false
+        ? { cache: "no-store" }
+        : { next: { revalidate: params.revalidate ?? 300 } };
+    const res = await fetch(apiUrl(`/api/courses/${query}`), init);
+    if (!res.ok) return parseListResponse<CourseApi>([]);
+    return parseListResponse<CourseApi>(await res.json());
+  } catch {
+    return parseListResponse<CourseApi>([]);
+  }
 }
 
 export async function fetchCoursesByCategory(
@@ -425,6 +529,26 @@ export function fetchBlogs(): Promise<BlogPostApi[]> {
     }
     return res.json() as Promise<BlogPostApi[]>;
   });
+}
+
+export async function fetchBlogsPage(
+  params: ListPageParams = {},
+): Promise<PaginatedResponse<BlogPostApi>> {
+  const query = buildListQuery({
+    page: params.page ?? 1,
+    pageSize: params.pageSize ?? 9,
+    search: params.search,
+    category: params.category,
+  });
+  try {
+    const res = await fetch(apiUrl(`/api/blog/${query}`), {
+      cache: params.cache ?? "no-store",
+    });
+    if (!res.ok) return parseListResponse<BlogPostApi>([]);
+    return parseListResponse<BlogPostApi>(await res.json());
+  } catch {
+    return parseListResponse<BlogPostApi>([]);
+  }
 }
 
 export async function fetchBlogBySlug(slug: string): Promise<BlogPostApi | null> {
@@ -568,7 +692,7 @@ export async function fetchCategoryPageContent(categoryId: number): Promise<Cate
 
 export async function fetchSiteSettings(): Promise<SiteSettingApi[]> {
   try {
-    const res = await fetch(apiUrl("/api/settings_app/"), { next: { revalidate: 300 } });
+    const res = await fetch(apiUrl("/api/settings_app/"), { cache: "no-store" });
     if (!res.ok) return [];
     const data = (await res.json()) as unknown;
     // console.log("data: ", data)

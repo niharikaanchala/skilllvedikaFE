@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { fetchBlogsPage, type BlogPostApi } from "@/app/lib/api";
+import { blogArticleMeta } from "@/app/lib/blog-utils";
 
 export type BlogFilterArticle = {
   slug: string;
@@ -13,25 +15,76 @@ export type BlogFilterArticle = {
 };
 
 type Props = {
-  articles: BlogFilterArticle[];
+  /** Optional SSR seed; component always loads pages from the API. */
+  articles?: BlogFilterArticle[];
+  pageSize?: number;
 };
 
-export default function BlogFilter({ articles }: Props) {
-  const categories = useMemo(() => {
-    const unique = Array.from(new Set(articles.map((a) => a.category))).sort();
-    return ["All", ...unique];
-  }, [articles]);
+const PAGE_SIZE = 9;
 
+function toArticle(p: BlogPostApi): BlogFilterArticle {
+  return {
+    slug: p.slug,
+    category: p.category,
+    title: p.title,
+    summary: p.excerpt,
+    meta: blogArticleMeta(p),
+    image_url: p.image_url,
+  };
+}
+
+export default function BlogFilter({ articles: initialArticles, pageSize = PAGE_SIZE }: Props) {
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [articles, setArticles] = useState<BlogFilterArticle[]>(initialArticles ?? []);
+  const [totalCount, setTotalCount] = useState(initialArticles?.length ?? 0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [categories, setCategories] = useState<string[]>(["All"]);
 
-  const filteredArticles = articles.filter((article) => {
-    const matchCategory = category === "All" || article.category === category;
-    const matchSearch =
-      article.title.toLowerCase().includes(search.toLowerCase()) ||
-      article.summary.toLowerCase().includes(search.toLowerCase());
-    return matchCategory && matchSearch;
-  });
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [category]);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await fetchBlogsPage({
+        page,
+        pageSize,
+        search: debouncedSearch,
+        category: category === "All" ? undefined : category,
+        cache: "no-store",
+      });
+      setArticles(data.results.map(toArticle));
+      setTotalCount(data.count);
+      setTotalPages(Math.max(1, data.total_pages));
+      if (data.categories?.length) {
+        setCategories(["All", ...data.categories]);
+      }
+      if (data.page !== page && data.total_pages > 0) {
+        setPage(data.page);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [page, pageSize, debouncedSearch, category]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const categoryChips = useMemo(() => categories, [categories]);
 
   return (
     <>
@@ -45,7 +98,7 @@ export default function BlogFilter({ articles }: Props) {
         />
 
         <div className="flex flex-wrap gap-2">
-          {categories.map((cat) => (
+          {categoryChips.map((cat) => (
             <button
               key={cat}
               type="button"
@@ -63,7 +116,7 @@ export default function BlogFilter({ articles }: Props) {
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
-        {filteredArticles.map((article) => (
+        {articles.map((article) => (
           <Link
             key={article.slug}
             href={`/blog/${article.slug}`}
@@ -101,10 +154,36 @@ export default function BlogFilter({ articles }: Props) {
           </Link>
         ))}
 
-        {filteredArticles.length === 0 && (
-          <p className="col-span-full text-center text-[#0C1A35]/60">No articles found.</p>
+        {articles.length === 0 && (
+          <p className="col-span-full text-center text-[#0C1A35]/60">
+            {loading ? "Loading articles..." : "No articles found."}
+          </p>
         )}
       </div>
+
+      {totalCount > 0 && totalPages > 1 ? (
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+          <button
+            type="button"
+            disabled={loading || page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#2C6ED5]/40 hover:text-[#2C6ED5] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Previous
+          </button>
+          <span className="text-sm font-medium text-slate-600">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            type="button"
+            disabled={loading || page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#2C6ED5]/40 hover:text-[#2C6ED5] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Next
+          </button>
+        </div>
+      ) : null}
     </>
   );
 }

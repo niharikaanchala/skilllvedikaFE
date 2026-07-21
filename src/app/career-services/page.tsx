@@ -1,9 +1,16 @@
-import { fetchCareerPage, fetchCourses, fetchBlogs, type BlogPostApi } from "@/app/lib/api";
+import {
+  fetchCareerPage,
+  fetchCourses,
+  fetchBlogs,
+  type BlogPostApi,
+  type CareerPageApi,
+  type CourseApi,
+} from "@/app/lib/api";
 import CareerServicesClient from "./CareerServicesClient";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const data = await fetchCareerPage();
+  const data = await fetchCareerPage().catch(() => ({} as CareerPageApi));
 
   const keywords = (data.meta?.meta_keywords ?? "")
     .split(",")
@@ -28,8 +35,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Page() {
   const [data, courses, blogs] = await Promise.all([
-    fetchCareerPage(),
-    fetchCourses(),
+    fetchCareerPage().catch(() => ({} as CareerPageApi)),
+    fetchCourses().catch(() => [] as CourseApi[]),
     fetchBlogs().catch(() => [] as BlogPostApi[]),
   ]);
 
