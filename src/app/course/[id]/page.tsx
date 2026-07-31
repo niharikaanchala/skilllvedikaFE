@@ -30,7 +30,7 @@ import {
 import { buildCourseDetailSchema } from "@/app/components/schemas/course-schema";
 import { buildBreadcrumbSchema } from "@/app/components/schemas/breadcrumb-schema";
 import { buildFaqPageSchema } from "@/app/components/schemas/faq-schema";
-import { enforcePoppinsHtml } from "@/app/lib/html";
+import { enforcePoppinsHtml, hasMeaningfulHtml } from "@/app/lib/html";
 import { Home } from "lucide-react";
 
 
@@ -208,21 +208,27 @@ export default async function CourseDetailPage({ params }: PageProps) {
     aboutSections?.[0]?.heading?.trim() ||
     sectionMeta?.about_heading?.trim() ||
     "About This Course";
-  const placementSupportText =
-    placementSupportSections?.[0]?.content?.trim() || "";
   const placementSupportHeading =
-    placementSupportSections?.[0]?.heading?.trim() ||
-    sectionMeta?.placement_support_heading?.trim() ||
-    "Placement Support";
-  const corporateTrainingText =
-    corporateTrainingSections?.[0]?.content?.trim() || "";
+    sectionMeta?.placement_support_heading?.trim() || "Placement Support";
   const corporateTrainingHeading =
-    corporateTrainingSections?.[0]?.heading?.trim() ||
-    sectionMeta?.corporate_training_heading?.trim() ||
-    "Corporate Training";
+    sectionMeta?.corporate_training_heading?.trim() || "Corporate Training";
   const aboutHtml = enforcePoppinsHtml(aboutText);
-  const placementSupportHtml = enforcePoppinsHtml(placementSupportText);
-  const corporateTrainingHtml = enforcePoppinsHtml(corporateTrainingText);
+  const placementSupportItems = (placementSupportSections ?? [])
+    .map((item) => ({
+      id: item.id,
+      heading: String(item.heading ?? "").trim(),
+      html: enforcePoppinsHtml(item.content || ""),
+      hasContent: hasMeaningfulHtml(item.content),
+    }))
+    .filter((item) => item.hasContent);
+  const corporateTrainingItems = (corporateTrainingSections ?? [])
+    .map((item) => ({
+      id: item.id,
+      heading: String(item.heading ?? "").trim(),
+      html: enforcePoppinsHtml(item.content || ""),
+      hasContent: hasMeaningfulHtml(item.content),
+    }))
+    .filter((item) => item.hasContent);
 
   const skillsHeading = sectionMeta?.skills_heading?.trim() || "Skills You’ll Learn";
   const toolsHeading = sectionMeta?.tools_heading?.trim() || "Tools & Technologies";
@@ -276,7 +282,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           }}
         />
       ) : null}
-      <main className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/40 to-white text-slate-800 pt-16">
+      <main className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/40 to-white text-slate-800 pt-[var(--sv-nav-offset)]">
       <section className="px-6 md:px-12 py-4 border-b border-sky-100/80 bg-white/70">
         <div className="max-w-7xl mx-auto text-xs md:text-sm text-slate-500 flex flex-wrap items-center gap-1.5">
           {/* Home icon */}
@@ -407,7 +413,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
         <div className={`${cardBase} p-6 md:p-8`}>
           <SectionTitle>{aboutHeading}</SectionTitle>
           <div
-            className="text-slate-600 mt-4 leading-relaxed prose max-w-none"
+            className="cms-rich-text text-slate-600 mt-4 leading-relaxed"
             dangerouslySetInnerHTML={{ __html: aboutHtml }}
           />
         </div>
@@ -474,7 +480,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
                     </span>
                   </summary>
                   <div
-                    className="mt-3 text-slate-600 text-sm leading-relaxed border-t border-sky-100 pt-3 prose max-w-none"
+                    className="cms-rich-text mt-3 text-slate-600 text-sm leading-relaxed border-t border-sky-100 pt-3"
                     dangerouslySetInnerHTML={{ __html: enforcePoppinsHtml(item.content || "") }}
                   />
                 </details>
@@ -528,37 +534,48 @@ export default async function CourseDetailPage({ params }: PageProps) {
           </div>
         ) : null}
 
-        {placementSupportText ? (
-          <div
-            className={`${cardBase} p-6 md:p-8 bg-gradient-to-br from-white via-sky-50/50 to-white`}
-          >
+        {placementSupportItems.length > 0 ? (
+          <div>
             <SectionTitle>{placementSupportHeading}</SectionTitle>
-            <div
-              className="mt-4 text-sm text-slate-600 max-w-2xl leading-relaxed prose max-w-none"
-              dangerouslySetInnerHTML={{ __html: placementSupportHtml }}
-            />
+            <div className="mt-6 space-y-4">
+              {placementSupportItems.map((item) => (
+                <div
+                  key={item.id}
+                  className={`${cardBase} p-6 md:p-8 bg-gradient-to-br from-white via-sky-50/50 to-white`}
+                >
+                  {item.heading ? (
+                    <h3 className="text-base md:text-lg font-bold text-[#0a2540] mb-3">
+                      {item.heading}
+                    </h3>
+                  ) : null}
+                  <div
+                    className="cms-rich-text text-sm md:text-base text-slate-600 leading-relaxed w-full"
+                    dangerouslySetInnerHTML={{ __html: item.html }}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-        ) : (
-          <div
-            className={`${cardBase} p-6 md:p-8 bg-gradient-to-br from-white via-sky-50/50 to-white`}
-          >
-            <SectionTitle>{placementSupportHeading}</SectionTitle>
-            <p className="mt-4 text-sm text-slate-600 max-w-2xl leading-relaxed">
-              We provide career guidance, interview preparation, and connections
-              to hiring partners. Speak to counselling for details tailored to{" "}
-              <span className="font-semibold text-[#0a2540]">{course.title}</span>
-              .
-            </p>
-          </div>
-        )}
+        ) : null}
 
-        {corporateTrainingText ? (
-          <div className={`${cardBase} p-6 md:p-8`}>
+        {corporateTrainingItems.length > 0 ? (
+          <div>
             <SectionTitle>{corporateTrainingHeading}</SectionTitle>
-            <div
-              className="text-slate-600 mt-4 leading-relaxed prose max-w-none"
-              dangerouslySetInnerHTML={{ __html: corporateTrainingHtml }}
-            />
+            <div className="mt-6 space-y-4">
+              {corporateTrainingItems.map((item) => (
+                <div key={item.id} className={`${cardBase} p-6 md:p-8`}>
+                  {item.heading ? (
+                    <h3 className="text-base md:text-lg font-bold text-[#0a2540] mb-3">
+                      {item.heading}
+                    </h3>
+                  ) : null}
+                  <div
+                    className="cms-rich-text text-sm md:text-base text-slate-600 leading-relaxed w-full"
+                    dangerouslySetInnerHTML={{ __html: item.html }}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         ) : null}
 

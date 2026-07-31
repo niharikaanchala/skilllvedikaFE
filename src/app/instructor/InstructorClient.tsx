@@ -157,7 +157,7 @@ export default function InstructorClient({ initialData, courses }: Props) {
   }
 
   return (
-    <main className="bg-[#F5F7FB] text-[#0C1A35] pt-16">
+    <main className="bg-[#F5F7FB] text-[#0C1A35] pt-[var(--sv-nav-offset)]">
 
       {/* Breadcrumb */}
       <section className="px-6 md:px-12 py-4 border-b border-sky-100/80 bg-white/70">

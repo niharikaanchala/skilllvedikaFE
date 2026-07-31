@@ -8,9 +8,19 @@ import { Home } from "lucide-react";
 import { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const meta = await fetch(apiUrl("/api/blog/meta-tags/"), { next: { revalidate: 300 } });
-  const data = await meta.json().catch(() => ({}));
-  const metaData = data || {};
+  let metaData: Record<string, string> = {};
+  try {
+    const meta = await fetch(apiUrl("/api/blog/meta-tags/"), {
+      next: { revalidate: 300 },
+    });
+    if (meta.ok) {
+      const data = (await meta.json().catch(() => ({}))) as Record<string, string>;
+      metaData = data || {};
+    }
+  } catch {
+    metaData = {};
+  }
+
   return {
     title: metaData.meta_title || "Blog | SkillVedika",
     description: metaData.meta_description || "Blog | SkillVedika",
@@ -33,7 +43,6 @@ export async function generateMetadata(): Promise<Metadata> {
       images: metaData.image ? [metaData.image.trim()] : undefined,
     },
   };
-
 }
 
 export default async function BlogPage() {
@@ -74,7 +83,7 @@ export default async function BlogPage() {
           __html: JSON.stringify(blogListSchema).replace(/<\/script/gi, "<\\/script"),
         }}
       />
-      <main className="bg-[#F4F7FB] text-[#0C1A35] pt-16">
+      <main className="bg-[#F4F7FB] text-[#0C1A35] pt-[var(--sv-nav-offset)]">
       {/* Breadcrumb */}
       <section className="px-6 md:px-12 py-4 border-b border-sky-100/80 bg-white/70">
         <div className="max-w-6xl mx-auto text-xs md:text-sm text-slate-500 flex items-center gap-2">

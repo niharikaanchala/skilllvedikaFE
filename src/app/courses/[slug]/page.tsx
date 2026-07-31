@@ -342,7 +342,7 @@ export default async function CategoryPage({ params }: PageProps) {
           }}
         />
       ) : null}
-      <main className="min-h-screen bg-gradient-to-b from-[#E7F3FF]/90 via-white to-slate-50/80 text-slate-800 pt-16">
+      <main className="min-h-screen bg-gradient-to-b from-[#E7F3FF]/90 via-white to-slate-50/80 text-slate-800 pt-[var(--sv-nav-offset)]">
       {/* Breadcrumb */}
       <section className="px-6 md:px-12 py-4 border-b border-sky-100/80 bg-white/70">
         <div className="max-w-6xl mx-auto text-xs md:text-sm text-slate-500 flex items-center">
@@ -371,9 +371,6 @@ export default async function CategoryPage({ params }: PageProps) {
         />
         <div className="relative max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-start gap-6 md:gap-8">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0066FF]/15 to-sky-100 ring-2 ring-[#0066FF]/20 flex items-center justify-center text-lg font-bold text-[#0066FF] shrink-0 shadow-sm">
-              {category.name.charAt(0).toUpperCase()}
-            </div>
             <div className="flex-1 min-w-0">
               {hasCustomHeroLabel ? (
                 <p className="text-xs font-bold tracking-[0.15em] text-[#0066FF] uppercase">
@@ -391,6 +388,14 @@ export default async function CategoryPage({ params }: PageProps) {
                 {injectCategoryName(heroDescription, category.name)}
               </p>
             </div>
+            <div className="shrink-0 md:pt-1 md:self-start">
+              <Link
+                href="/courses"
+                className="inline-flex items-center justify-center rounded-full border-2 border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-[#001f3f] hover:bg-[#E7F3FF] hover:border-[#0066FF]/30 transition shadow-sm"
+              >
+                ← Back to Courses
+              </Link>
+            </div>
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -398,12 +403,6 @@ export default async function CategoryPage({ params }: PageProps) {
               buttonText="Enroll now"
               className="inline-flex items-center justify-center rounded-full bg-[#2563EB] text-white px-5 py-2.5 text-sm font-bold shadow-md hover:bg-[#1d4ed8] transition"
             />
-            <Link
-              href="/courses"
-              className="inline-flex items-center justify-center rounded-full border-2 border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-[#001f3f] hover:bg-[#E7F3FF] hover:border-[#0066FF]/30 transition shadow-sm"
-            >
-              ← Back to Courses
-            </Link>
             
             <span className="text-xs font-bold text-[#001f3f] bg-[#E7F3FF] border border-sky-200 px-4 py-2 rounded-full">
               {categoryCourses.length}{" "}
@@ -455,7 +454,7 @@ export default async function CategoryPage({ params }: PageProps) {
               {whyPoints.map((point, idx) => (
                 <li
                   key={`${idx}-${point.slice(0, 24)}`}
-                  className="flex gap-3 rounded-2xl border border-sky-100 bg-white p-4 shadow-md shadow-slate-200/30"
+                  className="flex items-start gap-3 rounded-2xl border border-sky-100 bg-white p-4 shadow-md shadow-slate-200/30"
                 >
                   <span
                     className="mt-0.5 w-8 h-8 shrink-0 rounded-full bg-[#0066FF]/12 text-[#0066FF] flex items-center justify-center text-xs font-bold ring-1 ring-[#0066FF]/25"
@@ -463,8 +462,8 @@ export default async function CategoryPage({ params }: PageProps) {
                   >
                     ✓
                   </span>
-                  <span
-                    className="text-sm text-slate-700 leading-relaxed pt-1 prose prose-sm max-w-none prose-p:my-0 prose-ul:my-0 prose-ol:my-0"
+                  <div
+                    className="cms-rich-text min-w-0 flex-1 text-sm text-slate-700 pt-1"
                     dangerouslySetInnerHTML={{
                       __html: enforcePoppinsHtml(injectCategoryName(point, category.name)),
                     }}

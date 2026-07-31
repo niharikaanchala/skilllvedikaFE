@@ -5,6 +5,15 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { CategoryApi } from "@/app/lib/api";
 
+const ACCENTS = [
+  { from: "#1e3a5f", to: "#2f5fa8", soft: "#e8f0fb" },
+  { from: "#0f4c5c", to: "#148c9c", soft: "#e6f7f8" },
+  { from: "#3b1f6b", to: "#6d3cc9", soft: "#f1eafb" },
+  { from: "#7a2e0e", to: "#d35400", soft: "#fff0e6" },
+  { from: "#1b4332", to: "#2d6a4f", soft: "#e8f5ef" },
+  { from: "#4a1942", to: "#9b2c6f", soft: "#f9eaf3" },
+];
+
 export default function CategoriesCarousel({
   categories,
 }: {
@@ -33,7 +42,7 @@ export default function CategoriesCarousel({
     if (!scrollRef.current) return;
 
     scrollRef.current.scrollBy({
-      left: dir === "left" ? -300 : 300,
+      left: dir === "left" ? -320 : 320,
       behavior: "smooth",
     });
   };
@@ -64,33 +73,55 @@ export default function CategoriesCarousel({
         ref={scrollRef}
         className="flex gap-5 overflow-x-auto scroll-smooth no-scrollbar px-1 md:px-8"
       >
-        {categories.map((cat) => (
-          <Link
-            key={cat.id}
-            href={`/courses/${cat.slug}`}
-            className="group relative min-w-[270px] rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2f5fa8]/60"
-          >
-            <div className="h-full rounded-3xl border border-[#dce8fb] bg-gradient-to-br from-white via-[#f8fbff] to-[#eaf2ff] p-5 shadow-[0_10px_30px_-20px_rgba(37,99,235,0.6)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_20px_40px_-24px_rgba(37,99,235,0.55)]">
-              <div className="mb-4 flex items-start">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#2f5fa8] to-[#4f83d2] text-base font-bold uppercase text-white shadow-md shadow-[#2f5fa8]/30">
-                  {cat.name?.charAt(0)}
+        {categories.map((cat, index) => {
+          const accent = ACCENTS[Math.abs(cat.id ?? index) % ACCENTS.length];
+          return (
+            <Link
+              key={cat.id}
+              href={`/courses/${cat.slug}`}
+              className="group relative min-w-[280px] max-w-[280px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2f5fa8]/60"
+            >
+              <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_14px_36px_-24px_rgba(15,23,42,0.55)] transition duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_24px_44px_-22px_rgba(47,95,168,0.45)]">
+                <div
+                  className="relative h-28 px-5 pb-4 pt-5"
+                  style={{
+                    background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                  }}
+                >
+                  <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10" />
+                  <div className="absolute bottom-3 right-4 h-14 w-14 rounded-full bg-white/10" />
+                  <div
+                    className="relative inline-flex h-11 w-11 items-center justify-center rounded-2xl text-lg font-bold text-white shadow-lg"
+                    style={{ backgroundColor: "rgba(255,255,255,0.18)" }}
+                  >
+                    {(cat.name || "?").charAt(0).toUpperCase()}
+                  </div>
+                  <p className="relative mt-3 line-clamp-1 text-sm font-semibold text-white/90">
+                    Explore programs
+                  </p>
+                </div>
+
+                <div className="p-5" style={{ backgroundColor: accent.soft }}>
+                  <h3 className="text-base font-bold leading-tight text-[#142645] transition-colors group-hover:text-[#2f5fa8]">
+                    {cat.name}
+                  </h3>
+                  <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs leading-relaxed text-slate-600">
+                    {cat.description ||
+                      "Explore focused learning paths and real-world skills built for career growth."}
+                  </p>
+                  <div className="mt-5 flex items-center justify-between border-t border-black/5 pt-3">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                      View courses
+                    </span>
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm font-semibold text-[#2f5fa8] shadow-sm transition-transform duration-300 group-hover:translate-x-1">
+                      →
+                    </span>
+                  </div>
                 </div>
               </div>
-              <h3 className="text-base font-bold leading-tight text-[#142645] transition-colors group-hover:text-[#2f5fa8]">
-                {cat.name}
-              </h3>
-              <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-600">
-                {cat.description || "Explore focused learning paths and real-world skills."}
-              </p>
-              <div className="mt-5 flex items-center justify-between border-t border-[#d9e6fb] pt-3">
-                <span className="text-[11px] font-semibold text-slate-500">Explore path</span>
-                <span className="text-sm font-semibold text-[#2f5fa8] transition-transform duration-300 group-hover:translate-x-1">
-                  →
-                </span>
-              </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

@@ -1,11 +1,13 @@
 import "./globals.css";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
+import TopBar, { parseTopBarFromSettings } from "./components/layout/TopBar";
+import FloatingContactButtons from "./components/layout/FloatingContactButtons";
 import { SiteBrandingProvider } from "./components/layout/SiteBrandingProvider";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import Script from "next/script";
-import { fetchSiteBranding, fetchSiteSettings } from "./lib/api";
+import { fetchCourses, fetchSiteBranding, fetchSiteFooter, fetchSiteSettings } from "./lib/api";
 import { buildOrganizationSchema, buildWebsiteSchema } from "./components/schemas/site-schema";
 
 const poppins = Poppins({
@@ -17,6 +19,17 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://skillvedika.com"),
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   icons: {
     icon: "/favicon-logo.ico",
   },
@@ -32,11 +45,12 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [settings, branding] = await Promise.all([
+  const [settings, branding, navCourses, footer] = await Promise.all([
     fetchSiteSettings(),
     fetchSiteBranding(),
+    fetchCourses(),
+    fetchSiteFooter(),
   ]);
-  // console.log("settings: ", settings)
   const gaId = googleTagId(
     settings
       .map((s) => String(s.google_analytics_id ?? "").trim())
@@ -64,12 +78,21 @@ export default async function RootLayout({
   const whatsappHref = whatsappNumber
     ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`
     : "";
+  const topBar = parseTopBarFromSettings(
+    settings as unknown as Array<Record<string, unknown>>,
+  );
+  const hasTopBar = Boolean(topBar);
   const organizationSchema = buildOrganizationSchema();
   const websiteSchema = buildWebsiteSchema();
 
   return (
     <html lang="en" className={`${poppins.variable} ${poppins.className}`}>
       <head>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `:root{--sv-nav-offset:${hasTopBar ? "6.75rem" : "4.5rem"};}`,
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -106,23 +129,18 @@ export default async function RootLayout({
       </head>
       <body>
         <SiteBrandingProvider initialBranding={branding ?? undefined}>
-          <Navbar />
-          {children}
-          <Footer />
-          {whatsappHref ? (
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="fixed bottom-5 right-5 z-50"
-            >
-              <img
-                src="/whatsapp_icon.png"
-                alt="WhatsApp"
-                className="w-14 h-14 shadow-lg rounded-xl animate-bounce"
-              />
-            </a>
+          {topBar ? (
+            <div className="fixed left-0 right-0 top-0 z-[60]">
+              <TopBar data={topBar} />
+            </div>
           ) : null}
+          <Navbar
+            hasTopBar={hasTopBar}
+            courses={Array.isArray(navCourses) ? navCourses : []}
+          />
+          {children}
+          <Footer initialFooter={footer} />
+          <FloatingContactButtons whatsappHref={whatsappHref} />
         </SiteBrandingProvider>
       </body>
     </html>

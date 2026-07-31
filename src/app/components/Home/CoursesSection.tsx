@@ -1,14 +1,24 @@
 import Link from "next/link";
-import { fetchCourses, type CourseApi } from "@/app/lib/api";
-import { splitCoursesForHomeTabs } from "@/app/lib/course-home-tabs";
+import {
+  fetchCategories,
+  fetchCourses,
+  type CategoryApi,
+  type CourseApi,
+} from "@/app/lib/api";
 import CoursesSectionClient from "./CoursesSectionClient";
 
 export default async function CoursesSection() {
   let courses: CourseApi[] = [];
+  let categories: CategoryApi[] = [];
   let loadError = false;
 
   try {
-    courses = await fetchCourses();
+    const [coursesData, categoriesData] = await Promise.all([
+      fetchCourses(),
+      fetchCategories(),
+    ]);
+    courses = Array.isArray(coursesData) ? coursesData : [];
+    categories = Array.isArray(categoriesData) ? categoriesData : [];
   } catch {
     loadError = true;
   }
@@ -53,7 +63,15 @@ export default async function CoursesSection() {
     );
   }
 
-  const { trending, popular } = splitCoursesForHomeTabs(courses);
+  // Show every active category from admin (not only ones that already have courses).
+  const allCategories = [...categories].sort((a, b) =>
+    (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" }),
+  );
 
-  return <CoursesSectionClient trending={trending} popular={popular} />;
+  return (
+    <CoursesSectionClient
+      courses={courses}
+      categories={allCategories}
+    />
+  );
 }

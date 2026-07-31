@@ -161,7 +161,7 @@ export default function CorporateTrainingClient({ initialData, courses }: Props)
   );
 
   return (
-    <div className="bg-[#f4f8fc] pt-16">
+    <div className="bg-[#f4f8fc] pt-[var(--sv-nav-offset)]">
       {/* Breadcrumb */}
       <section className="border-b border-slate-200/70 bg-white/80 px-6 py-4 md:px-12">
         <div className="max-w-6xl mx-auto text-xs md:text-sm text-slate-500 flex items-center gap-2">

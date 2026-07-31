@@ -239,7 +239,7 @@ export default function ContactClient({ initialData }: Props) {
   if (!data) return <p className="text-center py-20">Loading...</p>;
 
   return (
-    <main className="bg-[#EEF3F9] text-[#12233F] pt-16">
+    <main className="bg-[#EEF3F9] text-[#12233F] pt-[var(--sv-nav-offset)]">
       {/* Breadcrumb */}
       <section className="px-6 md:px-12 py-4 border-b border-sky-100/80 bg-white/70">
         <div className="max-w-6xl mx-auto text-xs md:text-sm text-slate-500 flex items-center gap-2">

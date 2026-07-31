@@ -40,6 +40,10 @@ export type SiteSettingApi = {
   google_ads_tag_id?: string | null;
   whatsapp_number?: string | null;
   whatsapp_message?: string | null;
+  top_bar_enabled?: boolean | null;
+  top_bar_phone?: string | null;
+  top_bar_email?: string | null;
+  top_bar_links?: Array<{ label?: string; url?: string; text?: string; link?: string }> | null;
 };
 
 export type SiteBrandingApi = {
@@ -49,6 +53,26 @@ export type SiteBrandingApi = {
   instagram_url?: string | null;
   linkedin_url?: string | null;
   youtube_url?: string | null;
+};
+
+export type FooterLinkApi = {
+  label: string;
+  href: string;
+};
+
+export type SiteFooterApi = {
+  id?: number;
+  logo?: string | null;
+  tagline?: string;
+  contact_email?: string;
+  copyright_text?: string;
+  explore_heading?: string;
+  support_heading?: string;
+  legal_heading?: string;
+  contact_heading?: string;
+  explore_links?: FooterLinkApi[];
+  support_links?: FooterLinkApi[];
+  legal_links?: FooterLinkApi[];
 };
 
 export type LegalPageApi = {
@@ -69,11 +93,15 @@ export type CourseApi = {
   duration: string;
   price: string;
   rating: number;
+  image?: string | null;
   seo_meta_title?: string;
   seo_meta_description?: string;
   seo_meta_keywords?: string;
   category: number | CategoryApi;
   category_name?: string;
+  category_slug?: string;
+  is_active?: boolean;
+  is_trending?: boolean;
 };
 
 export type CourseSkillApi = { id: number; course: number; name: string; description?: string };
@@ -384,7 +412,13 @@ export function parseListResponse<T>(data: unknown): PaginatedResponse<T> {
 }
 
 export function fetchCategories(): Promise<CategoryApi[]> {
-  return fetchJson<CategoryApi[]>("/api/categories/").catch(() => []);
+  return fetchJson<CategoryApi[] | { results?: CategoryApi[] }>("/api/categories/")
+    .then((data) => {
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.results)) return data.results;
+      return [];
+    })
+    .catch(() => []);
 }
 
 export function fetchCourses(): Promise<CourseApi[]> {
@@ -714,6 +748,52 @@ export async function fetchSiteBranding(): Promise<SiteBrandingApi | null> {
       instagram_url: typeof data.instagram_url === "string" ? data.instagram_url : null,
       linkedin_url: typeof data.linkedin_url === "string" ? data.linkedin_url : null,
       youtube_url: typeof data.youtube_url === "string" ? data.youtube_url : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function parseFooterLinks(value: unknown): FooterLinkApi[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const row = item as Record<string, unknown>;
+      const label = typeof row.label === "string" ? row.label.trim() : "";
+      const href =
+        typeof row.href === "string"
+          ? row.href.trim()
+          : typeof row.url === "string"
+            ? row.url.trim()
+            : typeof row.link === "string"
+              ? row.link.trim()
+              : "";
+      if (!label || !href) return null;
+      return { label, href };
+    })
+    .filter((item): item is FooterLinkApi => item != null);
+}
+
+export async function fetchSiteFooter(): Promise<SiteFooterApi | null> {
+  try {
+    const res = await fetch(apiUrl("/api/home/footer/"), { next: { revalidate: 60 } });
+    if (!res.ok) return null;
+    const data = (await res.json()) as Partial<SiteFooterApi>;
+    if (!data || typeof data !== "object" || Object.keys(data).length === 0) return null;
+    return {
+      id: typeof data.id === "number" ? data.id : undefined,
+      logo: typeof data.logo === "string" ? data.logo : null,
+      tagline: typeof data.tagline === "string" ? data.tagline : undefined,
+      contact_email: typeof data.contact_email === "string" ? data.contact_email : undefined,
+      copyright_text: typeof data.copyright_text === "string" ? data.copyright_text : undefined,
+      explore_heading: typeof data.explore_heading === "string" ? data.explore_heading : undefined,
+      support_heading: typeof data.support_heading === "string" ? data.support_heading : undefined,
+      legal_heading: typeof data.legal_heading === "string" ? data.legal_heading : undefined,
+      contact_heading: typeof data.contact_heading === "string" ? data.contact_heading : undefined,
+      explore_links: parseFooterLinks(data.explore_links),
+      support_links: parseFooterLinks(data.support_links),
+      legal_links: parseFooterLinks(data.legal_links),
     };
   } catch {
     return null;

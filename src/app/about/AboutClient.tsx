@@ -91,7 +91,7 @@ export default function AboutPage({ initialData, courses }: { initialData: any, 
       : null;
 
   return (
-    <main className="bg-[#F4F5FC] pt-16">
+    <main className="bg-[#F4F5FC] pt-[var(--sv-nav-offset)]">
       {/* Breadcrumb */}
       <section className="px-6 md:px-12 py-4 border-b border-sky-100/80 bg-white/70">
         <div className="max-w-6xl mx-auto text-xs md:text-sm text-slate-500 flex items-center gap-2">

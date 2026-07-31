@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useSiteBranding } from "@/app/components/layout/SiteBrandingProvider";
+import type { FooterLinkApi, SiteFooterApi } from "@/app/lib/api";
+import { apiUrl } from "@/app/lib/api";
 
 type SocialIconProps = { size?: number };
 
@@ -46,11 +49,119 @@ function normalizeExternalUrl(url?: string | null): string | null {
   return `https://${trimmed}`;
 }
 
-export default function Footer() {
+function resolveMediaUrl(path?: string | null): string | null {
+  const value = (path ?? "").trim();
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value) || value.startsWith("data:")) return value;
+  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+  if (value.startsWith("/")) return `${API_URL}${value}`;
+  return `${API_URL}/${value}`;
+}
+
+const DEFAULT_EXPLORE: FooterLinkApi[] = [
+  { label: "All courses", href: "/courses" },
+  { label: "About", href: "/about" },
+  { label: "Blog", href: "/blog" },
+];
+
+const DEFAULT_SUPPORT: FooterLinkApi[] = [
+  { label: "Job support", href: "/on-job-support" },
+  { label: "Instructor", href: "/instructor" },
+  { label: "Contact", href: "/contact" },
+  { label: "Corporate Training", href: "/corporate-training" },
+  { label: "Career Services", href: "/career-services" },
+];
+
+const DEFAULT_LEGAL: FooterLinkApi[] = [
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Terms & Conditions", href: "/terms" },
+  { label: "Disclaimer", href: "/disclaimer" },
+  { label: "Editorial Policy", href: "/editorial-policy" },
+];
+
+function LinkList({ links }: { links: FooterLinkApi[] }) {
+  return (
+    <ul className="mt-3 space-y-2 text-sm text-slate-300">
+      {links.map((item) => {
+        const href = item.href.trim();
+        const external = /^https?:\/\//i.test(href);
+        if (external) {
+          return (
+            <li key={`${item.label}-${href}`}>
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition hover:text-white"
+              >
+                {item.label}
+              </a>
+            </li>
+          );
+        }
+        return (
+          <li key={`${item.label}-${href}`}>
+            <Link href={href || "/"} className="transition hover:text-white">
+              {item.label}
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+export default function Footer({ initialFooter = null }: { initialFooter?: SiteFooterApi | null }) {
   const branding = useSiteBranding();
+  const [footer, setFooter] = useState<SiteFooterApi | null>(initialFooter);
+
+  useEffect(() => {
+    setFooter(initialFooter ?? null);
+  }, [initialFooter]);
+
+  useEffect(() => {
+    if (footer && Object.keys(footer).length > 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(apiUrl("/api/home/footer/"));
+        if (!res.ok) return;
+        const data = (await res.json()) as SiteFooterApi;
+        if (!cancelled && data && Object.keys(data).length > 0) {
+          setFooter(data);
+        }
+      } catch {
+        // Keep defaults.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [footer]);
 
   const brandLabel = branding?.brand_name?.trim() || "SkillVedika";
-  const logo = branding?.logo || null;
+  const logoSrc =
+    resolveMediaUrl(footer?.logo) || resolveMediaUrl(branding?.logo) || null;
+
+  const tagline =
+    footer?.tagline?.trim() ||
+    "High-quality training institute helping learners succeed.";
+  const contactEmail = footer?.contact_email?.trim() || "support@skillvedika.com";
+  const copyrightText =
+    footer?.copyright_text?.trim() ||
+    "© 2026 skillvedika.com. All Rights Reserved. Skillvedika is owned and operated by TutorKhoj Private Limited.";
+
+  const exploreLinks =
+    footer?.explore_links && footer.explore_links.length > 0
+      ? footer.explore_links
+      : DEFAULT_EXPLORE;
+  const supportLinks =
+    footer?.support_links && footer.support_links.length > 0
+      ? footer.support_links
+      : DEFAULT_SUPPORT;
+  const legalLinks =
+    footer?.legal_links && footer.legal_links.length > 0 ? footer.legal_links : DEFAULT_LEGAL;
+
   const socialItems = [
     {
       key: "facebook",
@@ -78,44 +189,16 @@ export default function Footer() {
     },
   ];
 
-  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
-
   return (
     <footer className="bg-[#0f2d56] text-white">
       <div className="mx-auto max-w-7xl px-6 pb-8 pt-8 md:px-10">
-
-        {/* Top */}
-        {/* <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-white/15 pb-6 md:flex-row md:items-center">
-          <p className="text-sm font-medium text-slate-100 md:text-base">
-            Get in touch with us.
-          </p>
-
-          <form className="flex w-full max-w-md items-center rounded-full bg-white/95 p-1">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="w-full rounded-full bg-transparent px-4 py-2 text-sm text-slate-700 outline-none"
-              aria-label="Enter your email"
-            />
-            <button
-              type="button"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#2f5fa8] text-white"
-              aria-label="Submit"
-            >
-              →
-            </button>
-          </form>
-        </div> */}
-
-        {/* Grid */}
         <div className="grid gap-6 md:grid-cols-5">
-
-          {/* Brand */}
           <div>
             <div className="flex items-center gap-2">
-              {logo && (
+              {logoSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={`${API_URL}${logo}`}
+                  src={logoSrc}
                   alt={brandLabel}
                   loading="lazy"
                   decoding="async"
@@ -123,12 +206,12 @@ export default function Footer() {
                   height={48}
                   className="h-12 w-auto max-w-[140px] object-contain object-left"
                 />
+              ) : (
+                <span className="text-lg font-semibold text-white">{brandLabel}</span>
               )}
             </div>
 
-            <p className="mt-3 text-sm leading-relaxed text-slate-300">
-              High-quality training institute helping learners succeed.
-            </p>
+            <p className="mt-3 text-sm leading-relaxed text-slate-300">{tagline}</p>
             <div className="mt-4 flex items-center gap-3">
               {socialItems.map((item) => {
                 const Icon = item.icon;
@@ -161,120 +244,41 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Explore */}
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-100">
-              Explore
+              {footer?.explore_heading?.trim() || "Explore"}
             </h3>
-
-            <ul className="mt-3 space-y-2 text-sm text-slate-300">
-              <li>
-                <Link href="/courses" className="hover:text-white transition">
-                  All courses
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/about" className="hover:text-white transition">
-                  About
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/blog" className="hover:text-white transition">
-                  Blog
-                </Link>
-              </li>
-            </ul>
+            <LinkList links={exploreLinks} />
           </div>
 
-          {/* Support */}
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-100">
-              Support
+              {footer?.support_heading?.trim() || "Support"}
             </h3>
-
-            <ul className="mt-3 space-y-2 text-sm text-slate-300">
-              <li>
-                <Link href="/on-job-support" className="hover:text-white transition">
-                  Job support
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/instructor" className="hover:text-white transition">
-                  Instructor
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-white transition">
-                  Contact
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/corporate-training" className="hover:text-white transition">
-                  Corporate Training
-                </Link>
-              </li>
-              <li>
-                <Link href="/career-services" className="hover:text-white transition">
-                  Career Services
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-100">
-              Legal
-            </h3>
-            <ul className="mt-3 space-y-2 text-sm text-slate-300">
-              <li>
-                <Link href="/privacy" className="hover:text-white transition">
-                  Privacy Policy
-                </Link>
-              </li>
-            </ul>
-            <ul className="mt-3 space-y-2 text-sm text-slate-300">
-              <li>
-                <Link href="/terms" className="hover:text-white transition">
-                  Terms & Conditions
-                </Link>
-              </li>
-            </ul>
-            <ul className="mt-3 space-y-2 text-sm text-slate-300">
-              <li>
-                <Link href="/disclaimer" className="hover:text-white transition">
-                  Disclaimer
-                </Link>
-              </li>
-            </ul>
-            <ul className="mt-3 space-y-2 text-sm text-slate-300">
-              <li>
-                <Link href="/editorial-policy" className="hover:text-white transition">
-                  Editorial Policy
-                </Link>
-              </li>
-            </ul>
+            <LinkList links={supportLinks} />
           </div>
 
-          {/* Contact */}
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-100">
-              Contact
+              {footer?.legal_heading?.trim() || "Legal"}
             </h3>
+            <LinkList links={legalLinks} />
+          </div>
 
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-100">
+              {footer?.contact_heading?.trim() || "Contact"}
+            </h3>
             <p className="mt-3 text-sm text-slate-300">
-              <Link href="mailto:support@skillvedika.com" className="hover:text-white transition">
-                support@skillvedika.com
+              <Link href={`mailto:${contactEmail}`} className="transition hover:text-white">
+                {contactEmail}
               </Link>
             </p>
           </div>
         </div>
 
-        {/* Bottom */}
         <p className="mt-8 border-t border-white/10 pt-6 text-center text-xs text-slate-400 md:text-sm">
-          © 2026 skillvedika.com. All Rights Reserved. Skillvedika is owned and operated by TutorKhoj Private Limited.
+          {copyrightText}
         </p>
       </div>
     </footer>

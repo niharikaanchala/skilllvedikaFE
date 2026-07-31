@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { CourseApi } from "@/app/lib/api";
+import { useMemo, useRef, useState } from "react";
+import type { CategoryApi, CourseApi } from "@/app/lib/api";
+import { courseHref } from "@/app/lib/course-links";
 import { courseRating } from "@/app/lib/course-home-tabs";
+import CourseCardImage from "@/app/components/CourseCardImage";
 
 const PRIMARY = "#2f5fa8";
-const PAGE_SIZE = 3;
 
 const THUMB_GRADIENTS = [
   "from-[#0f2744] to-[#2b5a9e]",
@@ -18,30 +19,19 @@ const THUMB_GRADIENTS = [
   "from-[#bf360c] to-[#e64a19]",
 ];
 
-function enrollmentFromId(id: number): number {
-  return 120 + (Math.abs(id * 17 + 31) % 2880);
-}
+type TabKey = "trending" | number;
 
-function slugifyCategory(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function courseHref(c: CourseApi): string {
-  const categorySlug =
-    typeof c.category === "object" && c.category !== null
-      ? (c.category.slug?.trim() || slugifyCategory(c.category.name ?? ""))
-      : slugifyCategory(c.category_name ?? "");
-
-  if (categorySlug && c.slug) {
-    return `/courses/${categorySlug}/${c.slug}`;
+function categoryIdOf(c: CourseApi): number | null {
+  if (typeof c.category === "number") return c.category;
+  if (typeof c.category === "object" && c.category !== null && typeof c.category.id === "number") {
+    return c.category.id;
   }
+  return null;
+}
 
-  // Keep legacy path as a fallback when category data is incomplete.
-  return `/course/${c.slug}`;
+function clampText(text: string, maxLen: number) {
+  if (!text) return "";
+  return text.length <= maxLen ? text : text.slice(0, maxLen - 1) + "…";
 }
 
 function StarRating({ rating }: { rating: number }) {
@@ -49,170 +39,233 @@ function StarRating({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-0.5 shrink-0">
       {[1, 2, 3, 4, 5].map((i) => (
-        <span key={i} className={i <= filled ? "text-amber-400 text-[15px] leading-none" : "text-gray-200 text-[15px] leading-none"}>
+        <span
+          key={i}
+          className={
+            i <= filled
+              ? "text-amber-400 text-[15px] leading-none"
+              : "text-gray-200 text-[15px] leading-none"
+          }
+        >
           ★
         </span>
       ))}
-      <span className="text-sm text-[#334155] ml-1 font-medium">({rating.toFixed(1)})</span>
+      <span className="ml-1 text-sm font-medium text-[#334155]">({rating.toFixed(1)})</span>
     </div>
   );
 }
 
-function CourseCard({ c }: { c: CourseApi }) {
+function HomeCourseCard({ c }: { c: CourseApi }) {
   const r = courseRating(c);
-  const enrolled = enrollmentFromId(c.id);
+  const gradient = THUMB_GRADIENTS[Math.abs(c.id) % THUMB_GRADIENTS.length];
 
   return (
     <Link
       href={courseHref(c)}
-      className="group flex flex-col h-full rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 p-5"
+      className="group flex h-full w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
     >
-      {/* Title */}
-      <h3 className="text-[17px] font-semibold text-[#0f2744] leading-snug line-clamp-2">
-        {c.title}
-      </h3>
+      <CourseCardImage src={c.image} alt={c.title} fallbackGradient={gradient} />
 
-      {/* Students */}
-      <p className="text-sm text-[#64748b] mt-2">
-        {enrolled.toLocaleString()} students enrolled
-      </p>
+      <div className="flex flex-1 flex-col p-5 text-left">
+        <h3 className="line-clamp-2 min-h-[3.25rem] text-[17px] font-semibold leading-snug text-[#0f2744]">
+          {c.title}
+        </h3>
 
-      {/* Rating */}
-      <div className="mt-3">
-        <StarRating rating={r} />
-      </div>
+        <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs leading-relaxed text-slate-600">
+          {clampText(c.description || "", 100)}
+        </p>
 
-      {/* Divider */}
-      <div className="border-t border-slate-100 my-4" />
+        <div className="mt-3 min-h-[1.25rem]">
+          <StarRating rating={r} />
+        </div>
 
-      {/* Button */}
-      <div className="mt-auto">
-        <span
-          className="block text-center py-2.5 rounded-lg text-sm font-semibold text-white transition group-hover:opacity-95"
-          style={{ backgroundColor: PRIMARY }}
-        >
-          View Course
-        </span>
+        <div className="my-4 border-t border-slate-100" />
+
+        <div className="mt-auto">
+          <span
+            className="block rounded-lg py-2.5 text-center text-sm font-semibold text-white transition group-hover:opacity-95"
+            style={{ backgroundColor: PRIMARY }}
+          >
+            View Course
+          </span>
+        </div>
       </div>
     </Link>
   );
 }
 
-type TabKey = "trending" | "popular";
+function CarouselShell({
+  children,
+  scrollStep = 340,
+  showArrows,
+}: {
+  children: React.ReactNode;
+  scrollStep?: number;
+  showArrows: boolean;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (dir: "left" | "right") => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollBy({
+      left: dir === "left" ? -scrollStep : scrollStep,
+      behavior: "smooth",
+    });
+  };
+
+  return (
+    <div className="relative">
+      {showArrows ? (
+        <>
+          <button
+            type="button"
+            onClick={() => scroll("left")}
+            className="absolute -left-1 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-[#0f2744] shadow-md transition hover:border-[#2f5fa8]/40 hover:bg-slate-50 hover:text-[#2f5fa8] sm:-left-3 sm:h-11 sm:w-11"
+            aria-label="Previous courses"
+          >
+            <ChevronLeft className="h-5 w-5" strokeWidth={2} />
+          </button>
+          <button
+            type="button"
+            onClick={() => scroll("right")}
+            className="absolute -right-1 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-[#0f2744] shadow-md transition hover:border-[#2f5fa8]/40 hover:bg-slate-50 hover:text-[#2f5fa8] sm:-right-3 sm:h-11 sm:w-11"
+            aria-label="Next courses"
+          >
+            <ChevronRight className="h-5 w-5" strokeWidth={2} />
+          </button>
+        </>
+      ) : null}
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto scroll-smooth no-scrollbar px-8 sm:px-10 md:px-12"
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 type Props = {
-  trending: CourseApi[];
-  popular: CourseApi[];
+  courses?: CourseApi[] | null;
+  categories?: CategoryApi[] | null;
 };
 
-export default function CoursesSectionClient({ trending, popular }: Props) {
-  const [tab, setTab] = useState<TabKey>("trending");
-  const [page, setPage] = useState(0);
+export default function CoursesSectionClient({ courses, categories }: Props) {
+  const allCourses = useMemo(
+    () => (Array.isArray(courses) ? courses : []),
+    [courses],
+  );
+  const allCategories = useMemo(
+    () => (Array.isArray(categories) ? categories : []),
+    [categories],
+  );
+
+  const [activeTab, setActiveTab] = useState<TabKey>("trending");
 
   const list = useMemo(() => {
-    if (tab === "popular") return popular;
-    return trending;
-  }, [tab, trending, popular]);
+    if (activeTab === "trending") {
+      return allCourses.filter((c) => Boolean(c.is_trending));
+    }
+    return allCourses.filter((c) => categoryIdOf(c) === activeTab);
+  }, [allCourses, activeTab]);
 
-  const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  const isTrending = activeTab === "trending";
+  const showArrows = list.length > 1;
 
-  useEffect(() => {
-    setPage(0);
-  }, [tab]);
-
-  useEffect(() => {
-    if (page >= pageCount) setPage(Math.max(0, pageCount - 1));
-  }, [page, pageCount]);
-
-  const slice = useMemo(() => {
-    const start = page * PAGE_SIZE;
-    return list.slice(start, start + PAGE_SIZE);
-  }, [list, page]);
-
-  const goPrev = useCallback(() => setPage((p) => Math.max(0, p - 1)), []);
-  const goNext = useCallback(() => setPage((p) => Math.min(pageCount - 1, p + 1)), [pageCount]);
-
-  const tabBtn = (key: TabKey, label: string) => (
-    <button
-      type="button"
-      onClick={() => setTab(key)}
-      className={`px-6 py-2 rounded-full text-sm font-semibold transition border ${
-        tab === key
-          ? "text-white border-transparent shadow-sm"
-          : "bg-white text-[#0f2744] border-slate-200 hover:bg-slate-50"
-      }`}
-      style={tab === key ? { backgroundColor: PRIMARY } : undefined}
-    >
-      {label}
-    </button>
-  );
+  const tabButtonClass = (active: boolean) =>
+    `relative shrink-0 whitespace-nowrap px-1 pb-3 text-sm font-semibold transition sm:text-[15px] ${
+      active ? "text-[#2f5fa8]" : "text-[#0f172a] hover:text-[#2f5fa8]"
+    }`;
 
   return (
     <section className="bg-white px-4 py-14 sm:px-8 sm:py-16 lg:px-12">
-      <div className="max-w-6xl mx-auto text-center">
-        <h2 className="text-2xl font-bold tracking-tight text-[#1b355b] sm:text-3xl">Explore Skill for Changing World</h2>
-        <p className="text-sm sm:text-base text-[#64748b] mt-3 max-w-2xl mx-auto leading-relaxed">
+      <div className="mx-auto max-w-6xl text-center">
+        <h2 className="text-2xl font-bold tracking-tight text-[#1b355b] sm:text-3xl">
+          Explore Skill for Changing World
+        </h2>
+        <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-[#64748b] sm:text-base">
           Choose an upskill program that aligns with your Passion & Goals
         </p>
 
-        <div className="mt-8 flex flex-wrap justify-center gap-3 sm:gap-4">
-          {tabBtn("trending", "Trending")}
-          {tabBtn("popular", "Popular")}
+        <div className="mt-8 overflow-x-auto no-scrollbar">
+          <div
+            className="mx-auto flex w-max min-w-full justify-start gap-6 border-b border-slate-200 px-1 sm:gap-8 md:justify-center"
+            role="tablist"
+            aria-label="Course categories"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "trending"}
+              onClick={() => setActiveTab("trending")}
+              className={tabButtonClass(activeTab === "trending")}
+            >
+              Trending
+              {activeTab === "trending" ? (
+                <span
+                  className="absolute inset-x-0 -bottom-px h-[3px] rounded-full"
+                  style={{ backgroundColor: PRIMARY }}
+                />
+              ) : null}
+            </button>
+            {allCategories.map((category) => {
+              const active = activeTab === category.id;
+              return (
+                <button
+                  key={category.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setActiveTab(category.id)}
+                  className={tabButtonClass(active)}
+                >
+                  {category.name}
+                  {active ? (
+                    <span
+                      className="absolute inset-x-0 -bottom-px h-[3px] rounded-full"
+                      style={{ backgroundColor: PRIMARY }}
+                    />
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {list.length === 0 ? (
-          <p className="text-sm text-[#64748b] mt-14 py-12">
-            No courses in this section yet.
+        {(list?.length ?? 0) === 0 ? (
+          <p className="mt-14 py-12 text-sm text-[#64748b]">
+            {activeTab === "trending"
+              ? "No trending courses yet. Mark courses as trending in the admin panel."
+              : "No courses in this category yet."}
           </p>
         ) : (
-          <>
-            <div className="relative mt-10">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 text-left">
-                {slice.map((c) => (
-                  <CourseCard key={`${tab}-${c.id}`} c={c} />
-                ))}
-              </div>
-
-              {list.length > PAGE_SIZE && (
-                <div className="flex flex-col items-center gap-4 mt-10">
-                  <div className="flex items-center justify-center gap-4">
-                    <button
-                      type="button"
-                      onClick={goPrev}
-                      disabled={page === 0}
-                      className="w-10 h-10 rounded-full border border-slate-200 bg-white text-[#0f2744] flex items-center justify-center shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-                      aria-label="Previous courses"
-                    >
-                      <ChevronLeft className="w-5 h-5" strokeWidth={2} />
-                    </button>
-                    <div className="flex gap-2">
-                      {Array.from({ length: pageCount }, (_, i) => (
-                        <button
-                          key={i}
-                          type="button"
-                          onClick={() => setPage(i)}
-                          className={`h-2.5 rounded-full transition-all ${
-                            i === page ? "w-8" : "w-2.5"
-                          }`}
-                          style={i === page ? { backgroundColor: PRIMARY } : { backgroundColor: "#e2e8f0" }}
-                          aria-label={`Go to slide ${i + 1}`}
-                        />
-                      ))}
+          <div className="relative mt-10 text-left">
+            {isTrending ? (
+              <CarouselShell showArrows={showArrows} scrollStep={640}>
+                {/* Two-row carousel only in Courses section Trending tab */}
+                <div className="grid auto-cols-[300px] grid-flow-col grid-rows-2 items-stretch gap-5 md:gap-6">
+                  {list.map((c) => (
+                    <div key={`trending-${c.id}`} className="flex h-full w-[300px]">
+                      <HomeCourseCard c={c} />
                     </div>
-                    <button
-                      type="button"
-                      onClick={goNext}
-                      disabled={page >= pageCount - 1}
-                      className="w-10 h-10 rounded-full border border-slate-200 bg-white text-[#0f2744] flex items-center justify-center shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-                      aria-label="Next courses"
-                    >
-                      <ChevronRight className="w-5 h-5" strokeWidth={2} />
-                    </button>
-                  </div>
+                  ))}
                 </div>
-              )}
-            </div>
-          </>
+              </CarouselShell>
+            ) : (
+              <CarouselShell showArrows={showArrows} scrollStep={320}>
+                <div className="flex items-stretch gap-5 md:gap-6">
+                  {list.map((c) => (
+                    <div
+                      key={`${String(activeTab)}-${c.id}`}
+                      className="flex h-full w-[300px] min-w-[300px] max-w-[300px] shrink-0"
+                    >
+                      <HomeCourseCard c={c} />
+                    </div>
+                  ))}
+                </div>
+              </CarouselShell>
+            )}
+          </div>
         )}
 
         <div className="mx-auto mt-8 flex max-w-6xl justify-center sm:justify-end">

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef } from "react";
 import CounsellingModal from "@/app/course/[id]/CounsellingModal";
+import CourseCardImage from "@/app/components/CourseCardImage";
 import { Home } from "lucide-react";
 import type { CareerPageApi, CourseApi, BlogPostApi } from "@/app/lib/api";
 
@@ -17,10 +18,6 @@ type Props = {
   courses: CourseApi[];
   blogs: BlogPostApi[];
 };
-
-function enrollmentFromId(id: number): number {
-  return 120 + (Math.abs(id * 17 + 31) % 2880);
-}
 
 function StarRating({ rating }: { rating: number }) {
   const safeRating = Number.isFinite(rating) ? rating : 0;
@@ -82,7 +79,7 @@ export default function CareerServicesClient({ initialData, courses, blogs }: Pr
   };
 
   return (
-    <main className="bg-slate-50 text-slate-900 pt-16">
+    <main className="bg-slate-50 text-slate-900 pt-[var(--sv-nav-offset)]">
       {/* Breadcrumb */}
       <section className="px-6 md:px-12 py-4 border-b border-sky-100/80 bg-white/70">
         <div className="max-w-6xl mx-auto text-xs md:text-sm text-slate-500 flex items-center gap-2">
@@ -203,28 +200,28 @@ export default function CareerServicesClient({ initialData, courses, blogs }: Pr
             </div>
             <div
               ref={relatedCoursesRef}
-              className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2 no-scrollbar"
+              className="flex items-stretch snap-x snap-mandatory gap-5 overflow-x-auto pb-2 no-scrollbar"
             >
               {relatedCourses.map((course) => (
                 <Link
                   key={course.id}
                   href={`/course/${course.slug}`}
-                  className="group flex min-w-[280px] flex-[0_0_100%] snap-start flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md sm:flex-[0_0_calc(50%-10px)] lg:flex-[0_0_calc(33.333%-14px)]"
+                  className="group flex h-full w-[300px] min-w-[300px] max-w-[300px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md"
                 >
-                  <h3 className="line-clamp-2 text-[17px] font-semibold leading-snug text-[#0f2744] group-hover:text-[#1d4f91]">
-                    {course.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-[#64748b]">
-                    {enrollmentFromId(course.id).toLocaleString()} students enrolled
-                  </p>
-                  <div className="mt-3">
-                    <StarRating rating={course.rating} />
-                  </div>
-                  <div className="my-4 border-t border-slate-100" />
-                  <div className="mt-auto">
-                    <span className="block rounded-lg bg-[#2f5fa8] py-2.5 text-center text-sm font-semibold text-white transition group-hover:opacity-95">
-                      View Course
-                    </span>
+                  <CourseCardImage src={course.image} alt={course.title} />
+                  <div className="flex flex-1 flex-col p-5">
+                    <h3 className="line-clamp-2 min-h-[3.25rem] text-[17px] font-semibold leading-snug text-[#0f2744] group-hover:text-[#1d4f91]">
+                      {course.title}
+                    </h3>
+                    <div className="mt-3 min-h-[1.25rem]">
+                      <StarRating rating={course.rating} />
+                    </div>
+                    <div className="my-4 border-t border-slate-100" />
+                    <div className="mt-auto">
+                      <span className="block rounded-lg bg-[#2f5fa8] py-2.5 text-center text-sm font-semibold text-white transition group-hover:opacity-95">
+                        View Course
+                      </span>
+                    </div>
                   </div>
                 </Link>
               ))}

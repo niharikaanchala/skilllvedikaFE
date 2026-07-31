@@ -1,3 +1,17 @@
+/** True when HTML has visible text (ignores empty tags like `<p></p>`). */
+export function hasMeaningfulHtml(input: string | null | undefined): boolean {
+  const html = String(input ?? "");
+  if (!html.trim()) return false;
+  const text = html
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > 0;
+}
+
 export function enforcePoppinsHtml(input: string | null | undefined): string {
   const html = String(input ?? "");
   if (!html) return "";

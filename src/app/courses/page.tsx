@@ -162,7 +162,7 @@ export default async function CoursesPage({
           __html: JSON.stringify(breadcrumbSchema).replace(/<\/script/gi, "<\\/script"),
         }}
       />
-      <main className="min-h-screen bg-gradient-to-b from-[#eaf0f7] via-white to-[#f4f8fc] pt-16 text-slate-800">
+      <main className="min-h-screen bg-gradient-to-b from-[#eaf0f7] via-white to-[#f4f8fc] pt-[var(--sv-nav-offset)] text-slate-800">
       {/* Breadcrumb */}
       <section className="border-b border-slate-200/70 bg-white/70 px-6 py-4 md:px-12">
         <div className="max-w-6xl mx-auto text-xs md:text-sm text-slate-500 flex items-center">
@@ -270,8 +270,8 @@ export default async function CoursesPage({
 
           {pageContent?.whyPointsHtml ? (
             <div
-              className="prose prose-slate mx-auto mt-8 max-w-3xl text-left"
-              dangerouslySetInnerHTML={{ __html: pageContent.whyPointsHtml }}
+              className="cms-rich-text mx-auto mt-8 max-w-3xl text-left text-sm text-slate-700"
+              dangerouslySetInnerHTML={{ __html: enforcePoppinsHtml(pageContent.whyPointsHtml) }}
             />
           ) : (
             <ul className="mx-auto mt-8 max-w-3xl space-y-3 text-left text-sm text-slate-700">
@@ -281,8 +281,8 @@ export default async function CoursesPage({
                       <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#2f5fa8]/12 text-xs font-bold text-[#2f5fa8] ring-1 ring-[#2f5fa8]/20">
                         ✓
                       </span>
-                      <span
-                        className="leading-relaxed pt-0.5 prose prose-sm max-w-none prose-p:my-0 prose-ul:my-0 prose-ol:my-0"
+                      <div
+                        className="cms-rich-text min-w-0 flex-1 leading-relaxed pt-0.5"
                         dangerouslySetInnerHTML={{ __html: enforcePoppinsHtml(String(item ?? "")) }}
                       />
                     </li>

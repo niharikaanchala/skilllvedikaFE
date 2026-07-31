@@ -364,7 +364,7 @@
 //     url ? `http://localhost:8000${url}` : "";
 
 //   return (
-//     <main className="bg-[#F5F7FB] text-[#0C1A35] pt-16"> 
+//     <main className="bg-[#F5F7FB] text-[#0C1A35] pt-[var(--sv-nav-offset)]"> 
 //       <Head>
 //         {meta?.meta_title ? <title>{meta.meta_title}</title> : null}
 //         {meta?.meta_description ? (
@@ -569,14 +569,18 @@ type SectionContentData = {
   process_title?: string;
 };
 
-// Fetch helper
+// Fetch helper — never throw during build/prerender if API is unreachable.
 async function fetchJson(path: string) {
-  const res = await fetch(apiUrl(path), { next: { revalidate: 300 } });
-  if (!res.ok) {
-    console.error("Failed to fetch", path);
+  try {
+    const res = await fetch(apiUrl(path), { next: { revalidate: 300 } });
+    if (!res.ok) {
+      console.error("Failed to fetch", path);
+      return [];
+    }
+    return res.json();
+  } catch {
     return [];
   }
-  return res.json();
 }
 
 async function getOnJobMeta() {
@@ -701,7 +705,7 @@ export default async function OnJobSupportPage() {
   };
 
   return (
-      <main className="bg-[#F5F7FB] text-[#0C1A35] pt-16">
+      <main className="bg-[#F5F7FB] text-[#0C1A35] pt-[var(--sv-nav-offset)]">
 
         {/* Breadcrumb */}
         <section className="px-6 md:px-12 py-4 border-b border-sky-100/80 bg-white/70">

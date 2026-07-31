@@ -313,56 +313,80 @@ import type { Metadata } from "next";
 import CorporateTrainingClient from "./CorporateTrainingClient";
 import { apiUrl } from "../lib/api";
 
-export const generateMetadata = async (): Promise<Metadata> => {
+type CorporateTrainingData = Record<string, unknown> & {
+  meta?: {
+    meta_title?: string;
+    meta_description?: string;
+    meta_keywords?: string;
+  };
+};
+
+const FALLBACK_META: Metadata = {
+  title: "Corporate Training | SkillVedika",
+  description: "Corporate training programs to upskill your workforce.",
+  keywords: ["corporate training", "employee training", "skill development"],
+  alternates: {
+    canonical: "https://skillvedika.com/corporate-training",
+  },
+};
+
+async function fetchCorporateTrainingData(): Promise<CorporateTrainingData> {
   try {
     const res = await fetch(apiUrl("/api/corporate-training/"), {
       next: { revalidate: 300 },
     });
-    const data = await res.json();
-
-    const meta = data?.meta || {};
-
-    return {
-      title: meta.meta_title || "Corporate Training | SkillVedika",
-      description:
-        meta.meta_description ||
-        "Corporate training programs to upskill your workforce.",
-      keywords: meta.meta_keywords
-        ? meta.meta_keywords.split(",").map((k: string) => k.trim())
-        : ["corporate training", "employee training", "skill development"],
-
-      alternates: {
-        canonical: "https://skillvedika.com/corporate-training",
-      },
-
-      openGraph: {
-        title: meta.meta_title,
-        description: meta.meta_description,
-        url: "https://skillvedika.com/corporate-training",
-        siteName: "SkillVedika",
-        type: "website",
-      },
-    };
+    if (!res.ok) return {};
+    const data = (await res.json()) as unknown;
+    if (!data || typeof data !== "object") return {};
+    return data as CorporateTrainingData;
   } catch {
-    return {
-      title: "Corporate Training | SkillVedika",
-      description: "Corporate training programs for organizations.",
-    };
+    return {};
   }
+}
+
+async function fetchCoursesSafe(): Promise<unknown[]> {
+  try {
+    const res = await fetch(apiUrl("/api/courses/"), {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as unknown;
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === "object" && Array.isArray((data as { results?: unknown[] }).results)) {
+      return (data as { results: unknown[] }).results;
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+export const generateMetadata = async (): Promise<Metadata> => {
+  const data = await fetchCorporateTrainingData();
+  const meta = data.meta || {};
+
+  return {
+    title: meta.meta_title || FALLBACK_META.title,
+    description: meta.meta_description || FALLBACK_META.description,
+    keywords: meta.meta_keywords
+      ? meta.meta_keywords.split(",").map((k: string) => k.trim())
+      : FALLBACK_META.keywords,
+    alternates: FALLBACK_META.alternates,
+    openGraph: {
+      title: meta.meta_title || String(FALLBACK_META.title),
+      description: meta.meta_description || String(FALLBACK_META.description),
+      url: "https://skillvedika.com/corporate-training",
+      siteName: "SkillVedika",
+      type: "website",
+    },
+  };
 };
 
 export default async function Page() {
-
-  const [coursesRes, res] = await Promise.all([
-    fetch(apiUrl("/api/courses/"), {
-      next: { revalidate: 300 },
-    }),
-    fetch(apiUrl("/api/corporate-training/"), {
-      next: { revalidate: 300 },
-    }),
+  const [data, courses] = await Promise.all([
+    fetchCorporateTrainingData(),
+    fetchCoursesSafe(),
   ]);
-  const coursesData = await coursesRes.json();
-  const data = await res.json();
 
-  return <CorporateTrainingClient initialData={data} courses={coursesData} />;
+  return <CorporateTrainingClient initialData={data} courses={courses} />;
 }
